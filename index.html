@@ -13,17 +13,25 @@
   header{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;padding:28px 32px;border-radius:14px;margin-bottom:24px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
   header h1{font-size:28px;margin-bottom:6px}
   header p{opacity:.9;font-size:15px}
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:24px}
   .kpi{background:var(--card);padding:20px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.05);border-left:4px solid var(--primary)}
   .kpi .label{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
   .kpi .value{font-size:32px;font-weight:700;color:var(--primary);margin-top:6px}
   .kpi.warn{border-left-color:var(--warning)} .kpi.warn .value{color:var(--warning)}
   .kpi.success{border-left-color:var(--success)} .kpi.success .value{color:var(--success)}
   .kpi.info{border-left-color:var(--info)} .kpi.info .value{color:var(--info)}
+  .chart-filter-bar{background:var(--card);border-radius:12px;padding:14px 20px;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .chart-filter-bar label{font-weight:600;color:var(--primary);font-size:14px}
+  .chart-filter-bar select{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff;font-family:inherit;min-width:220px}
+  .chart-filter-bar select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(31,78,120,.15)}
+  .chart-filter-bar .hint{color:var(--muted);font-size:13px;margin-left:auto}
+  .chart-filter-bar .btn-reset{padding:6px 12px;font-size:12px;background:var(--bg);color:var(--primary);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600}
+  .chart-filter-bar .btn-reset:hover{background:#E5E7EB}
   .charts{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
   @media (max-width:900px){.charts{grid-template-columns:1fr}}
   .card{background:var(--card);border-radius:12px;padding:20px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
-  .card h2{font-size:17px;color:var(--primary);margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--bg)}
+  .card h2{font-size:17px;color:var(--primary);margin-bottom:6px}
+  .card .subtitle{color:var(--muted);font-size:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--bg)}
   .chart-wrap{position:relative;height:280px}
   .toolbar{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;align-items:center}
   .toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff;font-family:inherit}
@@ -44,11 +52,6 @@
   td{padding:12px 10px;border-bottom:1px solid var(--border)}
   tr:hover td{background:var(--bg)}
   tr:last-child td{border-bottom:none}
-  .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-  .badge-active{background:#D1FAE5;color:#065F46}
-  .badge-upcoming{background:#DBEAFE;color:#1E40AF}
-  .badge-done{background:#E5E7EB;color:#374151}
-  .badge-warn{background:#FEF3C7;color:#92400E}
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
   .modal-overlay.active{display:flex}
   .modal{background:#fff;border-radius:14px;padding:28px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.2)}
@@ -72,17 +75,38 @@
   <div class="kpis">
     <div class="kpi"><div class="label">Teamleden</div><div class="value" id="kpi-teamleden">0</div></div>
     <div class="kpi success"><div class="label">Actieve toewijzingen</div><div class="value" id="kpi-actief">0</div></div>
-    <div class="kpi info"><div class="label">Projecten in uitvoering</div><div class="value" id="kpi-projecten">0</div></div>
+    <div class="kpi info"><div class="label">Projecten in Bouwteamfase</div><div class="value" id="kpi-bouwteam">0</div></div>
+    <div class="kpi success"><div class="label">Projecten in Realisatiefase</div><div class="value" id="kpi-realisatie">0</div></div>
     <div class="kpi warn"><div class="label">Aflopend deze week</div><div class="value" id="kpi-week">0</div></div>
   </div>
-  <div class="charts">
-    <div class="card"><h2>Verdeling per fase</h2><div class="chart-wrap"><canvas id="chartFase"></canvas></div></div>
-    <div class="card"><h2>Toewijzingen per teamlid</h2><div class="chart-wrap"><canvas id="chartTeamlid"></canvas></div></div>
+
+  <div class="chart-filter-bar">
+    <label for="chartTeamlidFilter">🔍 Filter grafieken op teamlid:</label>
+    <select id="chartTeamlidFilter">
+      <option value="">Alle teamleden</option>
+    </select>
+    <button class="btn-reset" onclick="resetChartFilter()">Reset</button>
+    <span class="hint" id="chartFilterHint">Toont data van alle teamleden</span>
   </div>
+
+  <div class="charts">
+    <div class="card">
+      <h2>Verdeling per fase</h2>
+      <div class="subtitle" id="chartFaseSubtitle">Alle teamleden</div>
+      <div class="chart-wrap"><canvas id="chartFase"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Toewijzingen per teamlid</h2>
+      <div class="subtitle" id="chartTeamlidSubtitle">Alle teamleden</div>
+      <div class="chart-wrap"><canvas id="chartTeamlid"></canvas></div>
+    </div>
+  </div>
+
   <div id="highlightSection" class="highlight-section" style="display:none">
     <h2>⚠️ Deze week aflopend (binnen 7 dagen)</h2>
     <div class="highlight-list" id="highlightList"></div>
   </div>
+
   <div class="card">
     <h2>Toewijzingen</h2>
     <div class="toolbar">
@@ -91,9 +115,9 @@
       <select id="filterProject"><option value="">Alle projecten</option></select>
       <select id="filterFase">
         <option value="">Alle fasen</option>
-        <option value="VO-fase">VO-fase</option>
-        <option value="DO-fase">DO-fase</option>
-        <option value="UO-fase">UO-fase</option>
+        <option value="VO">VO</option>
+        <option value="DO">DO</option>
+        <option value="UO">UO</option>
         <option value="Realisatie">Realisatie</option>
       </select>
       <button class="btn btn-primary" onclick="openModal()">+ Nieuwe toewijzing</button>
@@ -105,8 +129,8 @@
       <table id="dataTable">
         <thead><tr>
           <th>Teamlid</th><th>Project</th><th>Huidige fase</th>
-          <th>Einddatum fase</th><th>Start Realisatie</th>
-          <th>Status</th><th>Opmerkingen</th><th>Acties</th>
+          <th>Startdatum fase</th><th>Einddatum bouwteam-/realisatiefase</th>
+          <th>Opmerkingen</th><th>Acties</th>
         </tr></thead>
         <tbody id="tableBody"></tbody>
       </table>
@@ -115,6 +139,7 @@
   </div>
   <div class="footer">💾 Gegevens worden lokaal in je browser opgeslagen (localStorage). Gebruik Export/Import om te delen of te backuppen.</div>
 </div>
+
 <div class="modal-overlay" id="modal">
   <div class="modal">
     <h2 id="modalTitle">Nieuwe toewijzing</h2>
@@ -125,14 +150,14 @@
       <div class="form-group"><label>Huidige fase *</label>
         <select id="fase" required>
           <option value="">-- Kies fase --</option>
-          <option value="VO-fase">VO-fase</option>
-          <option value="DO-fase">DO-fase</option>
-          <option value="UO-fase">UO-fase</option>
+          <option value="VO">VO</option>
+          <option value="DO">DO</option>
+          <option value="UO">UO</option>
           <option value="Realisatie">Realisatie</option>
         </select>
       </div>
-      <div class="form-group"><label>Einddatum huidige fase</label><input type="date" id="einddatum"/></div>
-      <div class="form-group"><label>Startdatum Realisatie</label><input type="date" id="startRealisatie"/></div>
+      <div class="form-group"><label>Startdatum fase</label><input type="date" id="startdatumFase"/></div>
+      <div class="form-group"><label>Einddatum bouwteam-/realisatiefase</label><input type="date" id="einddatumFase"/></div>
       <div class="form-group"><label>Opmerkingen</label><textarea id="opmerkingen" placeholder="Optionele notities..."></textarea></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuleren</button>
@@ -141,11 +166,39 @@
     </form>
   </div>
 </div>
+
 <script>
-const PROJECTS = ["Middenweg Ouderkerk a.d. Amstel","Rozenburg-Zuid fase 1: Rijsenhout Zuid","Versnelling RZF1a","Rozenburg-Zuid fase 2: Schiphol logistics park","Versnelling RZF2a","Rozenburg-Zuid fase 3: Beukenhorst oost/de Hoek","Rozenburg-Zuid fase 4","Rijsenhout-Noord","Oosteinde","Gildenlaan Velsen-noord","Wijkerstraatweg Velsen-noord","Wijkermeerweg Velsen-noord","Bloemendaalseweg Overveen","Rollandslaan Overveen","Hartelustlaan Overveen","Den Texlaan Overveen","Planetenlaan Haarlem","Muiderslotweg Haarlem","Kleverlaan Haarlem","Kennemerboulevard IJmuiden","Zadelmakerstraat"];
-const FASES = ["VO-fase","DO-fase","UO-fase","Realisatie"];
-const STORAGE_KEY = "teamDashboard_v1";
+const PROJECTS = [
+  "Middenweg Ouderkerk a.d. Amstel",
+  "Rozenburg-Zuid fase 1: Rijsenhout Zuid",
+  "Versnelling RZF1a",
+  "Rozenburg-Zuid fase 2: Schiphol logistics park",
+  "Versnelling RZF2a",
+  "Rozenburg-Zuid fase 3: Beukenhorst oost/de Hoek",
+  "Rozenburg-Zuid fase 4",
+  "Rijsenhout-Noord",
+  "Oosteinde",
+  "Gildenlaan",
+  "Wijkerstraatweg Velsen-noord",
+  "Wijkermeerweg Velsen-noord",
+  "Wijkermeer & Wijkerstraat",
+  "Bloemendaalseweg",
+  "Rollandslaan Overveen",
+  "Hartenlustlaan",
+  "Hartelustlaan Overveen",
+  "Den Texlaan",
+  "Ramplaan",
+  "Planetenlaan",
+  "Muiderslotweg",
+  "Kleverlaan",
+  "Kennemerboulevard IJmuiden",
+  "Zadelmakerstraat"
+];
+const FASES = ["VO","DO","UO","Realisatie"];
+const BOUWTEAM_FASES = ["VO","DO","UO"];
+const STORAGE_KEY = "teamDashboard_v2";
 let entries = [], chartFase, chartTeamlid;
+
 function init(){
   const proj = document.getElementById('project'), filterProj = document.getElementById('filterProject');
   PROJECTS.forEach(p=>{proj.innerHTML += `<option value="${p}">${p}</option>`; filterProj.innerHTML += `<option value="${p}">${p}</option>`;});
@@ -153,14 +206,27 @@ function init(){
   if(entries.length===0) seedExample();
   render();
   ['searchInput','filterTeamlid','filterProject','filterFase'].forEach(id=>document.getElementById(id).addEventListener('input', render));
+  document.getElementById('chartTeamlidFilter').addEventListener('change', updateCharts);
 }
-function todayPlus(days){const d=new Date();d.setDate(d.getDate()+days);return d.toISOString().slice(0,10);}
 function seedExample(){
   entries = [
-    {id:crypto.randomUUID(), teamlid:"Wouter Lindenbergh", project:"Middenweg Ouderkerk a.d. Amstel", fase:"UO-fase", einddatum:todayPlus(3), startRealisatie:todayPlus(40), opmerkingen:"Loopt op schema"},
-    {id:crypto.randomUUID(), teamlid:"Sander Zuyderwijk", project:"Rozenburg-Zuid fase 1: Rijsenhout Zuid", fase:"DO-fase", einddatum:todayPlus(20), startRealisatie:todayPlus(160), opmerkingen:""},
-    {id:crypto.randomUUID(), teamlid:"Max Wiercx", project:"Planetenlaan Haarlem", fase:"Realisatie", einddatum:todayPlus(200), startRealisatie:todayPlus(-30), opmerkingen:"Uitvoering gestart"},
-    {id:crypto.randomUUID(), teamlid:"Allard-Mark Ebbers", project:"Gildenlaan Velsen-noord", fase:"UO-fase", einddatum:todayPlus(5), startRealisatie:todayPlus(28), opmerkingen:"Klantoverleg gepland"}
+    {id:crypto.randomUUID(), teamlid:"Wesley", project:"Planetenlaan", fase:"Realisatie", startdatumFase:"2026-10-08", einddatumFase:"2027-01-06", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Wesley", project:"Muiderslotweg", fase:"Realisatie", startdatumFase:"2026-08-17", einddatumFase:"2027-04-05", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Wesley", project:"Kleverlaan", fase:"UO", startdatumFase:"2026-07-09", einddatumFase:"2026-07-23", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Mara", project:"Kleverlaan", fase:"UO", startdatumFase:"2026-07-09", einddatumFase:"2026-07-23", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Mara", project:"Bloemendaalseweg", fase:"UO", startdatumFase:"2026-07-09", einddatumFase:"2026-08-28", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Mara", project:"Ramplaan", fase:"UO", startdatumFase:"2026-07-09", einddatumFase:"2026-09-11", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Mara", project:"Hartenlustlaan", fase:"DO", startdatumFase:"2026-07-09", einddatumFase:"2027-01-20", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Mara", project:"Den Texlaan", fase:"DO", startdatumFase:"2026-07-09", einddatumFase:"2027-02-05", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Barry", project:"Bloemendaalseweg", fase:"UO", startdatumFase:"2026-07-09", einddatumFase:"2026-08-28", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Barry", project:"Ramplaan", fase:"UO", startdatumFase:"2026-07-09", einddatumFase:"2026-09-11", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Barry", project:"Hartenlustlaan", fase:"DO", startdatumFase:"2026-07-09", einddatumFase:"2027-01-20", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Barry", project:"Den Texlaan", fase:"DO", startdatumFase:"2026-07-09", einddatumFase:"2027-02-05", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Lotfy", project:"Zadelmakerstraat", fase:"VO", startdatumFase:"2026-07-09", einddatumFase:"2027-06-09", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Lotfy", project:"Wijkermeer & Wijkerstraat", fase:"DO", startdatumFase:"2026-07-09", einddatumFase:"2026-12-11", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Stan", project:"Zadelmakerstraat", fase:"VO", startdatumFase:"2026-04-01", einddatumFase:"2027-06-09", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Stan", project:"Gildenlaan", fase:"Realisatie", startdatumFase:"2026-08-07", einddatumFase:"2027-01-18", opmerkingen:""},
+    {id:crypto.randomUUID(), teamlid:"Stan", project:"Wijkermeer & Wijkerstraat", fase:"DO", startdatumFase:"2026-07-09", einddatumFase:"2026-12-11", opmerkingen:""}
   ];
   saveData();
 }
@@ -168,15 +234,15 @@ function loadData(){const raw=localStorage.getItem(STORAGE_KEY);entries=raw?JSON
 function saveData(){localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));}
 function getStatus(e){
   const today=new Date().toISOString().slice(0,10);
-  if(e.startRealisatie && e.startRealisatie<=today && e.fase==="Realisatie") return {label:"Actief in realisatie",cls:"badge-active"};
-  if(e.einddatum && e.einddatum<today) return {label:"Fase afgerond",cls:"badge-done"};
-  if(e.einddatum){const diff=(new Date(e.einddatum)-new Date(today))/(1000*60*60*24);if(diff<=7) return {label:"Loopt af",cls:"badge-warn"};}
-  if(e.startRealisatie && e.startRealisatie>today) return {label:"Aankomend",cls:"badge-upcoming"};
-  return {label:"Actief",cls:"badge-active"};
+  if(e.einddatumFase && e.einddatumFase<today) return {label:"Afgerond"};
+  if(e.startdatumFase && e.startdatumFase>today) return {label:"Aankomend"};
+  if(e.einddatumFase){const diff=(new Date(e.einddatumFase)-new Date(today))/(1000*60*60*24);if(diff<=7) return {label:"Loopt af"};}
+  return {label:"Actief"};
 }
 function fmtDate(s){if(!s) return "—";const[y,m,d]=s.split("-");return `${d}-${m}-${y}`;}
 function render(){
   refreshTeamlidFilter();
+  refreshChartTeamlidFilter();
   const search=document.getElementById('searchInput').value.toLowerCase();
   const fTeam=document.getElementById('filterTeamlid').value;
   const fProj=document.getElementById('filterProject').value;
@@ -193,8 +259,7 @@ function render(){
   else{
     empty.style.display="none";
     body.innerHTML=filtered.map(e=>{
-      const st=getStatus(e);
-      return `<tr><td><strong>${escapeHtml(e.teamlid)}</strong></td><td>${escapeHtml(e.project)}</td><td>${escapeHtml(e.fase)}</td><td>${fmtDate(e.einddatum)}</td><td>${fmtDate(e.startRealisatie)}</td><td><span class="badge ${st.cls}">${st.label}</span></td><td>${escapeHtml(e.opmerkingen||"")}</td><td class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="editEntry('${e.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteEntry('${e.id}')">🗑️</button></td></tr>`;
+      return `<tr><td><strong>${escapeHtml(e.teamlid)}</strong></td><td>${escapeHtml(e.project)}</td><td>${escapeHtml(e.fase)}</td><td>${fmtDate(e.startdatumFase)}</td><td>${fmtDate(e.einddatumFase)}</td><td>${escapeHtml(e.opmerkingen||"")}</td><td class="actions-cell"><button class="btn btn-secondary btn-sm" onclick="editEntry('${e.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteEntry('${e.id}')">🗑️</button></td></tr>`;
     }).join("");
   }
   updateKPIs(); updateHighlight(); updateCharts();
@@ -205,25 +270,41 @@ function refreshTeamlidFilter(){
   sel.innerHTML='<option value="">Alle teamleden</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join("");
   sel.value=current;
 }
+function refreshChartTeamlidFilter(){
+  const sel=document.getElementById('chartTeamlidFilter'); const current=sel.value;
+  const names=[...new Set(entries.map(e=>e.teamlid))].sort();
+  sel.innerHTML='<option value="">Alle teamleden</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join("");
+  sel.value=current;
+}
+function resetChartFilter(){document.getElementById('chartTeamlidFilter').value="";updateCharts();}
 function updateKPIs(){
   const today=new Date().toISOString().slice(0,10);
   document.getElementById('kpi-teamleden').textContent=new Set(entries.map(e=>e.teamlid)).size;
-  document.getElementById('kpi-projecten').textContent=new Set(entries.map(e=>e.project)).size;
-  document.getElementById('kpi-actief').textContent=entries.filter(e=>{const st=getStatus(e);return st.label==="Actief"||st.label==="Actief in realisatie"||st.label==="Loopt af";}).length;
-  document.getElementById('kpi-week').textContent=entries.filter(e=>{if(!e.einddatum) return false;const diff=(new Date(e.einddatum)-new Date(today))/(1000*60*60*24);return diff>=0 && diff<=7;}).length;
+  document.getElementById('kpi-actief').textContent=entries.filter(e=>{const st=getStatus(e);return st.label==="Actief"||st.label==="Loopt af";}).length;
+  const bouwteamProjects = new Set(entries.filter(e=>BOUWTEAM_FASES.includes(e.fase)).map(e=>e.project));
+  const realisatieProjects = new Set(entries.filter(e=>e.fase==="Realisatie").map(e=>e.project));
+  document.getElementById('kpi-bouwteam').textContent = bouwteamProjects.size;
+  document.getElementById('kpi-realisatie').textContent = realisatieProjects.size;
+  document.getElementById('kpi-week').textContent=entries.filter(e=>{if(!e.einddatumFase) return false;const diff=(new Date(e.einddatumFase)-new Date(today))/(1000*60*60*24);return diff>=0 && diff<=7;}).length;
 }
 function updateHighlight(){
   const today=new Date().toISOString().slice(0,10);
-  const items=entries.filter(e=>{if(!e.einddatum) return false;const diff=(new Date(e.einddatum)-new Date(today))/(1000*60*60*24);return diff>=0 && diff<=7;});
+  const items=entries.filter(e=>{if(!e.einddatumFase) return false;const diff=(new Date(e.einddatumFase)-new Date(today))/(1000*60*60*24);return diff>=0 && diff<=7;});
   const sec=document.getElementById('highlightSection'), list=document.getElementById('highlightList');
   if(items.length===0){sec.style.display="none";return;}
   sec.style.display="block";
-  list.innerHTML=items.map(e=>`<div class="highlight-item"><strong>${escapeHtml(e.teamlid)}</strong>${escapeHtml(e.project)}<br><small>${e.fase} · eindigt ${fmtDate(e.einddatum)}</small></div>`).join("");
+  list.innerHTML=items.map(e=>`<div class="highlight-item"><strong>${escapeHtml(e.teamlid)}</strong>${escapeHtml(e.project)}<br><small>${e.fase} · eindigt ${fmtDate(e.einddatumFase)}</small></div>`).join("");
 }
 function updateCharts(){
+  const chartTeamlidFilter = document.getElementById('chartTeamlidFilter').value;
+  const chartData = chartTeamlidFilter ? entries.filter(e=>e.teamlid===chartTeamlidFilter) : entries;
+  const subtitleText = chartTeamlidFilter ? `Gefilterd op: ${chartTeamlidFilter}` : "Alle teamleden";
+  document.getElementById('chartFaseSubtitle').textContent = subtitleText;
+  document.getElementById('chartTeamlidSubtitle').textContent = subtitleText;
+  document.getElementById('chartFilterHint').textContent = chartTeamlidFilter ? `Toont ${chartData.length} toewijzing(en) van ${chartTeamlidFilter}` : "Toont data van alle teamleden";
   const faseCount={}; FASES.forEach(f=>faseCount[f]=0);
-  entries.forEach(e=>{if(faseCount[e.fase]!==undefined) faseCount[e.fase]++;});
-  const teamCount={}; entries.forEach(e=>{teamCount[e.teamlid]=(teamCount[e.teamlid]||0)+1;});
+  chartData.forEach(e=>{if(faseCount[e.fase]!==undefined) faseCount[e.fase]++;});
+  const teamCount={}; chartData.forEach(e=>{teamCount[e.teamlid]=(teamCount[e.teamlid]||0)+1;});
   if(chartFase) chartFase.destroy();
   chartFase=new Chart(document.getElementById('chartFase'),{type:'doughnut',data:{labels:Object.keys(faseCount),datasets:[{data:Object.values(faseCount),backgroundColor:['#4A90E2','#F59E0B','#8B5CF6','#10B981']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
   if(chartTeamlid) chartTeamlid.destroy();
@@ -231,11 +312,11 @@ function updateCharts(){
 }
 function openModal(){document.getElementById('modalTitle').textContent="Nieuwe toewijzing";document.getElementById('entryForm').reset();document.getElementById('entryId').value="";document.getElementById('modal').classList.add('active');}
 function closeModal(){document.getElementById('modal').classList.remove('active');}
-function editEntry(id){const e=entries.find(x=>x.id===id);if(!e) return;document.getElementById('modalTitle').textContent="Toewijzing bewerken";document.getElementById('entryId').value=e.id;document.getElementById('teamlid').value=e.teamlid;document.getElementById('project').value=e.project;document.getElementById('fase').value=e.fase;document.getElementById('einddatum').value=e.einddatum||"";document.getElementById('startRealisatie').value=e.startRealisatie||"";document.getElementById('opmerkingen').value=e.opmerkingen||"";document.getElementById('modal').classList.add('active');}
+function editEntry(id){const e=entries.find(x=>x.id===id);if(!e) return;document.getElementById('modalTitle').textContent="Toewijzing bewerken";document.getElementById('entryId').value=e.id;document.getElementById('teamlid').value=e.teamlid;document.getElementById('project').value=e.project;document.getElementById('fase').value=e.fase;document.getElementById('startdatumFase').value=e.startdatumFase||"";document.getElementById('einddatumFase').value=e.einddatumFase||"";document.getElementById('opmerkingen').value=e.opmerkingen||"";document.getElementById('modal').classList.add('active');}
 function saveEntry(ev){
   ev.preventDefault();
   const id=document.getElementById('entryId').value;
-  const data={teamlid:document.getElementById('teamlid').value.trim(),project:document.getElementById('project').value,fase:document.getElementById('fase').value,einddatum:document.getElementById('einddatum').value,startRealisatie:document.getElementById('startRealisatie').value,opmerkingen:document.getElementById('opmerkingen').value.trim()};
+  const data={teamlid:document.getElementById('teamlid').value.trim(),project:document.getElementById('project').value,fase:document.getElementById('fase').value,startdatumFase:document.getElementById('startdatumFase').value,einddatumFase:document.getElementById('einddatumFase').value,opmerkingen:document.getElementById('opmerkingen').value.trim()};
   if(id){const i=entries.findIndex(e=>e.id===id);if(i>=0) entries[i]={...entries[i],...data};}
   else{entries.push({id:crypto.randomUUID(),...data});}
   saveData(); closeModal(); render();
