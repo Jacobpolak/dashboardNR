@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>⏱️ Bezetting Testtool v2</title>
+<title>Bezetting – NuRijnland</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -11,15 +11,21 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding:24px;min-height:100vh}
   .container{max-width:1400px;margin:0 auto}
+  .topnav{background:#1F4E78;color:#fff;padding:14px 24px;border-radius:14px;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .topnav .brand{font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px;color:#fff}
+  .topnav .tabs{display:flex;gap:8px}
+  .topnav .tab{color:#fff;text-decoration:none;padding:9px 18px;border-radius:8px;font-weight:600;font-size:14px;border:2px solid rgba(255,255,255,.3);display:inline-flex;align-items:center;gap:6px}
+  .topnav .tab:hover{background:rgba(255,255,255,.2);border-color:#fff}
+  .topnav .tab.active{background:#fff;color:#1F4E78;border-color:#fff}
   header{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;padding:28px 32px;border-radius:14px;margin-bottom:24px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
   header h1{font-size:28px;margin-bottom:6px}
   header p{opacity:.9;font-size:15px}
   .info-box{background:#EFF6FF;border-left:4px solid var(--info);border-radius:8px;padding:16px 20px;margin-bottom:20px;font-size:14px;color:#1E3A8A}
   .info-box strong{display:block;margin-bottom:6px;color:#1E40AF}
   .info-box code{background:#DBEAFE;padding:1px 6px;border-radius:4px;font-size:13px}
+  .storage-info{background:#F0FDF4;border-left:4px solid var(--success);border-radius:8px;padding:12px 18px;margin-bottom:20px;font-size:13px;color:#065F46}
   .grouping-box{background:#F0FDF4;border-left:4px solid var(--success);border-radius:8px;padding:14px 20px;margin-bottom:20px;font-size:14px;color:#065F46;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   .grouping-box .btn-small{padding:6px 12px;font-size:12px;background:#fff;color:var(--success);border:1px solid var(--success);border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;margin-left:auto}
-  .grouping-box .btn-small:hover{background:#D1FAE5}
   .upload-zone{background:var(--card);border:2px dashed var(--primary);border-radius:12px;padding:36px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px}
   .upload-zone:hover,.upload-zone.dragover{background:#E0F2FE;border-color:var(--primary-light)}
   .upload-zone .icon{font-size:42px;margin-bottom:10px}
@@ -34,7 +40,6 @@
   .kpi.danger{border-left-color:var(--danger)} .kpi.danger .value{color:var(--danger)}
   .week-nav{background:var(--card);border-radius:12px;padding:14px 20px;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .week-nav .arrow{background:var(--primary);color:#fff;border:none;width:38px;height:38px;border-radius:50%;font-size:16px;cursor:pointer;font-weight:700}
-  .week-nav .arrow:hover{background:var(--primary-light)}
   .week-nav .arrow:disabled{background:#CBD5E1;cursor:not-allowed}
   .week-nav .week-label{font-size:18px;font-weight:700;color:var(--primary);min-width:180px;text-align:center}
   .week-nav select{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff;font-family:inherit;margin-left:auto}
@@ -60,10 +65,14 @@
   .badge-under{background:#FEF3C7;color:#92400E}
   .badge-over{background:#FEE2E2;color:#991B1B}
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
-  .btn{padding:10px 18px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
-  .btn-primary{background:var(--primary);color:#fff} .btn-primary:hover{background:var(--primary-light)}
-  .btn-secondary{background:#fff;color:var(--primary);border:1px solid var(--border)} .btn-secondary:hover{background:var(--bg)}
-  .btn-danger{background:var(--danger);color:#fff} .btn-danger:hover{opacity:.9}
+  .btn{padding:10px 18px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-secondary{background:#fff;color:var(--primary);border:1px solid var(--border)}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-info{background:var(--info);color:#fff}
+  .cleanup-box{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:4px 8px}
+  .cleanup-box input{width:50px;padding:5px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:13px}
+  .cleanup-box button{padding:6px 10px;font-size:12px;background:var(--warning);color:#fff;border:none;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:600}
   .empty{text-align:center;padding:40px;color:var(--muted);background:var(--card);border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
   .config-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;font-size:13px}
   .config-row input{width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit}
@@ -72,77 +81,86 @@
   .project-mini .hours{font-weight:600;color:var(--primary)}
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
   .modal-overlay.active{display:flex}
-  .modal{background:#fff;border-radius:14px;padding:28px;max-width:800px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.2)}
+  .modal{background:#fff;border-radius:14px;padding:28px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.2)}
   .modal h2{color:var(--primary);margin-bottom:16px;font-size:20px}
+  .modal h3{color:var(--primary);margin:16px 0 8px 0;font-size:15px}
   .group-item{border-left:3px solid var(--primary);padding:10px 14px;margin-bottom:10px;background:#F9FAFB;border-radius:6px}
   .group-item .canonical{font-weight:700;color:var(--primary);font-size:14px}
   .group-item .variants{font-size:12px;color:var(--muted);margin-top:4px;padding-left:8px;border-left:2px solid var(--border);margin-left:4px}
   .group-item .variants div{margin:2px 0}
   .close-modal{background:var(--primary);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;margin-top:12px}
+  .debug-stat{display:flex;justify-content:space-between;padding:8px 12px;background:#F9FAFB;border-radius:6px;margin-bottom:6px;font-size:13px}
+  .debug-stat strong{color:var(--primary)}
+  .debug-code{background:#1F2937;color:#F3F4F6;padding:12px;border-radius:6px;font-family:monospace;font-size:12px;overflow-x:auto;white-space:pre;margin-top:8px}
+  .debug-good{color:var(--success);font-weight:600}
+  .debug-warn{color:var(--warning);font-weight:600}
+  .debug-bad{color:var(--danger);font-weight:600}
 </style>
 </head>
 <body>
 <div class="container">
-
+  <nav class="topnav">
+    <div class="brand">🏗️ NuRijnland Team Tools</div>
+    <div class="tabs">
+      <a href="index.html" class="tab">👥 Team Dashboard</a>
+      <a href="bezetting.html" class="tab active">⏱️ Bezetting</a>
+    </div>
+  </nav>
 <header>
-  <h1>⏱️ Bezetting Testtool v2</h1>
-  <p>Uren-registratie per teamlid per week · Nu met 12-weken trendlijn en slimme projectgroepering</p>
+  <h1>⏱️ Bezetting</h1>
+  <p>Uren-registratie per teamlid per week · Auto-fallback Totaal, 12-weken trend, slimme projectgroepering</p>
 </header>
-
 <div class="info-box">
-  <strong>📋 Verwacht Excel-format</strong>
-  De eerste rij moet kolomkoppen bevatten. Herkenbare kolommen (case-insensitief): 
-  <code>Medewerker</code>, <code>Projectnaam</code>, <code>Week</code>, <code>Datum</code>, <code>Totaal</code>.
-  Overige kolommen worden genegeerd. Datums mogen in Excel-datum, DD-MM-YYYY of ISO staan.
-  De tool herkent en groepeert automatisch soortgelijke projectnamen (bijv. "case 289900 TGP AM 37566A MS-Net Gildenlaan Velsen-Noord" wordt "Gildenlaan").
+  <strong>📋 Zo werkt het</strong>
+  Uploads worden <strong>samengevoegd</strong> met bestaande data. Duplicaten worden automatisch overgeslagen. De tool herkent flexibel de kolommen <code>Medewerker</code>, <code>Projectnaam</code>, <code>Week</code>, <code>Datum</code> en <code>Totaal</code>. Als de <code>Totaal</code>-kolom leeg is worden de percentage-kolommen (100%, 135%, 150%, 200%) opgeteld.
 </div>
-
+<div id="storageInfo" class="storage-info" style="display:none"></div>
 <div class="upload-zone" id="uploadZone">
   <div class="icon">📤</div>
   <h3>Sleep hier je Excel-bestand of klik om te uploaden</h3>
-  <p>Ondersteund: .xlsx, .xls</p>
+  <p>Ondersteund: .xlsx, .xls · Nieuwe uren worden toegevoegd aan de historie</p>
   <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none"/>
 </div>
-
 <div class="toolbar">
   <button class="btn btn-secondary" onclick="loadDemoData()">📥 Voorbeelddata laden</button>
-  <button class="btn btn-danger" onclick="clearData()">🗑️ Wis data</button>
+  <button class="btn btn-info" onclick="openDebugModal()">🔍 Debug info laatste import</button>
   <button class="btn btn-secondary" onclick="toggleNormConfig()">⚙️ Normuren instellen</button>
+  <div class="cleanup-box" title="Oude data opschonen">
+    <span style="font-size:13px;color:var(--muted)">🗑️ Data ouder dan</span>
+    <input type="number" id="cleanupWeeks" min="1" max="520" value="52"/>
+    <span style="font-size:13px;color:var(--muted)">weken wissen</span>
+    <button onclick="cleanOldData()">Uitvoeren</button>
+  </div>
+  <button class="btn btn-danger" onclick="clearData()">🗑️ Alles wissen</button>
 </div>
-
 <div class="card" id="normConfig" style="display:none">
   <h2>Normuren per teamlid (uren/week)</h2>
-  <div class="subtitle">Wijzig hieronder de contracturen per persoon. Onbekende namen krijgen de standaard.</div>
+  <div class="subtitle">Wijzig hieronder de contracturen per persoon.</div>
   <div id="normRows"></div>
   <div class="config-row" style="margin-top:10px">
     <label style="font-weight:600">Standaard normuren:</label>
     <input type="number" id="normDefault" min="0" max="60" step="1" onchange="saveNormConfig()"/>
-    <span style="color:var(--muted);font-size:12px">wordt gebruikt voor teamleden zonder eigen instelling</span>
+    <span style="color:var(--muted);font-size:12px">voor teamleden zonder eigen instelling</span>
   </div>
 </div>
-
 <div id="groupingBanner" class="grouping-box" style="display:none">
   <span>🔗</span>
   <span id="groupingText">–</span>
   <button class="btn-small" onclick="openGroupingModal()">Toon groepering</button>
 </div>
-
 <div id="mainContent" style="display:none">
-
   <div class="kpis">
     <div class="kpi"><div class="label">Aantal teamleden</div><div class="value" id="kpi-team">0</div></div>
     <div class="kpi success"><div class="label">Totaal geboekte uren</div><div class="value" id="kpi-total">0</div></div>
     <div class="kpi warn"><div class="label">Onderbezet</div><div class="value" id="kpi-under">0</div></div>
     <div class="kpi danger"><div class="label">Overbezet</div><div class="value" id="kpi-over">0</div></div>
   </div>
-
   <div class="week-nav">
     <button class="arrow" id="btnPrev" onclick="changeWeek(-1)">◀</button>
     <div class="week-label" id="weekLabel">–</div>
     <button class="arrow" id="btnNext" onclick="changeWeek(1)">▶</button>
     <select id="weekSelect" onchange="jumpToWeek(this.value)"></select>
   </div>
-
   <div class="charts">
     <div class="card" style="margin-bottom:0">
       <h2>Bezetting per teamlid</h2>
@@ -155,20 +173,16 @@
       <div class="chart-wrap small"><canvas id="chartProj"></canvas></div>
     </div>
   </div>
-
   <div class="card">
     <h2>Detail per teamlid</h2>
-    <div class="subtitle">Klik op een rij voor project-uitsplitsing (deze week)</div>
+    <div class="subtitle">Klik op een rij voor project-uitsplitsing</div>
     <div style="overflow-x:auto">
       <table id="detailTable">
-        <thead><tr>
-          <th>Teamlid</th><th>Normuren</th><th>Geboekt</th><th>Verschil</th><th>Bezetting %</th><th>Status</th><th>Projecten</th>
-        </tr></thead>
+        <thead><tr><th>Teamlid</th><th>Normuren</th><th>Geboekt</th><th>Verschil</th><th>Bezetting %</th><th>Status</th><th>Projecten</th></tr></thead>
         <tbody id="detailBody"></tbody>
       </table>
     </div>
   </div>
-
   <div class="card">
     <div class="card-header-row">
       <h2>📈 Trend bezetting</h2>
@@ -187,735 +201,444 @@
     <div class="chart-wrap large"><canvas id="chartTrend"></canvas></div>
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:20px;flex-wrap:wrap;font-size:13px" id="trendKPIs"></div>
   </div>
-
   <div class="card">
     <h2>Totale uren per project</h2>
     <div class="subtitle" id="chartProjBarSubtitle">–</div>
     <div class="chart-wrap"><canvas id="chartProjBar"></canvas></div>
   </div>
-
 </div>
-
 <div id="emptyState" class="empty">
   <p style="font-size:16px;margin-bottom:8px">📊 Nog geen data geladen</p>
   <p>Upload een Excel-bestand of klik op "Voorbeelddata laden" om te testen.</p>
 </div>
-
-<div class="footer">💾 Gegevens worden lokaal in je browser opgeslagen (localStorage). Deze tool draait 100% client-side.</div>
-
+<div class="footer">💾 Gegevens worden lokaal in je browser opgeslagen (localStorage). Historie wordt opgebouwd over uploads heen.</div>
 </div>
 
-<!-- Grouping modal -->
 <div class="modal-overlay" id="groupingModal">
   <div class="modal">
     <h2>🔗 Projectnaam-groepering</h2>
-    <div style="color:var(--muted);font-size:13px;margin-bottom:14px">
-      Ruwe projectnamen uit je Excel zijn automatisch gegroepeerd op basis van overeenkomende sleutelwoorden.
-      Hieronder zie je per canonieke naam welke ruwe varianten zijn samengevoegd.
-    </div>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:14px">Ruwe projectnamen automatisch gegroepeerd.</div>
     <div id="groupingList"></div>
     <button class="close-modal" onclick="closeGroupingModal()">Sluiten</button>
   </div>
 </div>
 
+<div class="modal-overlay" id="debugModal">
+  <div class="modal">
+    <h2>🔍 Debug-info laatste import</h2>
+    <div id="debugContent"></div>
+    <button class="close-modal" onclick="closeDebugModal()">Sluiten</button>
+  </div>
+</div>
+
 <script>
-const STORAGE_KEY = 'bezettingTool_v2';
-const NORM_KEY = 'bezettingTool_norm_v2';
+const STORAGE_KEY='bezettingTool_v2', NORM_KEY='bezettingTool_norm_v2';
+const DEFAULT_NORM={"Barry":36,"Mara":36,"Wouter Lindenbergh":32,"Wouter":32};
+const DEFAULT_NORM_FALLBACK=40;
+const STOPWORDS=new Set(['project','case','bto','ms','net','tgp','am','hl','nao','en','de','het','een','van','haarlem','bloemendaal','overveen','aerdenhout','velsen','noord','zuid','oost','west','e','o','sr','jr','the','and','or']);
+let records=[], normConfig={}, normDefault=DEFAULT_NORM_FALLBACK, currentWeekKey=null;
+let chartTeam,chartProj,chartProjBar,chartTrend;
+let projectGrouping={};
+let lastImportDebug=null;
 
-const DEFAULT_NORM = {
-  "Barry": 36,
-  "Mara": 36,
-  "Wouter Lindenbergh": 32,
-  "Wouter": 32
-};
-const DEFAULT_NORM_FALLBACK = 40;
-
-// Stopwords voor projectnaam-normalisatie
-const STOPWORDS = new Set([
-  'project','case','bto','ms','net','tgp','am','hl','en','de','het','een','van',
-  'haarlem','bloemendaal','overveen','aerdenhout','velsen','noord','zuid','oost','west',
-  'e','o','sr','jr','the','and','or'
-]);
-
-let records = [];         // originele records (met ruwe projectnaam bewaard als projectRaw)
-let normConfig = {};
-let normDefault = DEFAULT_NORM_FALLBACK;
-let currentWeekKey = null;
-let chartTeam, chartProj, chartProjBar, chartTrend;
-let projectGrouping = {}; // canonical -> [raw variants]
-
-// ---------- Fuzzy project name matching ----------
-function normalizeProjectName(raw) {
-  if (!raw) return '';
-  let s = String(raw).toLowerCase();
-  // Remove numeric codes and IDs
-  s = s.replace(/\b[a-z]?\d{3,}[a-z]?\b/gi, ' '); // e.g. 289900, P20250014, O20240009, 37566A
-  s = s.replace(/[_\-\/\\]/g, ' ');
-  s = s.replace(/[^a-z\s]/g, ' ');
-  s = s.replace(/\s+/g, ' ').trim();
-  return s;
-}
-
-function extractTokens(normalized) {
-  return normalized
-    .split(/\s+/)
-    .filter(t => t.length > 3 && !STOPWORDS.has(t));
-}
-
-function buildProjectGrouping(rawNames) {
-  // For each raw name, compute normalized tokens
-  const tokenMap = rawNames.map(raw => ({
-    raw,
-    normalized: normalizeProjectName(raw),
-    tokens: extractTokens(normalizeProjectName(raw))
-  }));
-
-  // Union-find style grouping: cluster together names that share >=1 significant token
-  // (for stronger uniqueness demand 2+ shared tokens if name has many, else 1)
-  const clusters = []; // array of {tokens:Set, members:[raw]}
-
-  for (const item of tokenMap) {
-    if (item.tokens.length === 0) {
-      // No usable tokens: put in own cluster keyed by raw
-      clusters.push({keyTokens: new Set([item.raw.toLowerCase()]), members: [item.raw]});
-      continue;
+function normalizeProjectName(raw){if(!raw) return '';let s=String(raw).toLowerCase();s=s.replace(/\b[a-z]?\d{3,}[a-z]?\b/gi,' ');s=s.replace(/[_\-\/\\]/g,' ');s=s.replace(/[^a-z\s]/g,' ');s=s.replace(/\s+/g,' ').trim();return s;}
+function extractTokens(n){return n.split(/\s+/).filter(t=>t.length>3 && !STOPWORDS.has(t));}
+function buildProjectGrouping(rawNames){
+  const items=rawNames.map(raw=>({raw,tokens:extractTokens(normalizeProjectName(raw))}));
+  const clusters=[];
+  for(const item of items){
+    if(item.tokens.length===0){clusters.push({keyTokens:new Set([item.raw.toLowerCase()]),members:[item.raw]});continue;}
+    let bestIdx=-1,bestScore=0;
+    for(let i=0;i<clusters.length;i++){
+      const shared=item.tokens.filter(t=>clusters[i].keyTokens.has(t)).length;
+      if(shared>bestScore){bestScore=shared;bestIdx=i;}
     }
-    // Find best matching cluster
-    let bestIdx = -1, bestScore = 0;
-    for (let i = 0; i < clusters.length; i++) {
-      const shared = item.tokens.filter(t => clusters[i].keyTokens.has(t)).length;
-      if (shared > bestScore) { bestScore = shared; bestIdx = i; }
-    }
-    if (bestIdx >= 0 && bestScore >= 1) {
-      // Merge
-      clusters[bestIdx].members.push(item.raw);
-      item.tokens.forEach(t => clusters[bestIdx].keyTokens.add(t));
-    } else {
-      clusters.push({keyTokens: new Set(item.tokens), members: [item.raw]});
-    }
+    if(bestIdx>=0 && bestScore>=1){clusters[bestIdx].members.push(item.raw);item.tokens.forEach(t=>clusters[bestIdx].keyTokens.add(t));}
+    else{clusters.push({keyTokens:new Set(item.tokens),members:[item.raw]});}
   }
-
-  // Determine canonical name per cluster: most-frequent single significant token,
-  // capitalized. If multiple tokens tied, join first two.
-  const grouping = {}; // canonical -> [raw]
-  for (const cl of clusters) {
-    // Count token frequencies across members
-    const tokFreq = {};
-    for (const m of cl.members) {
-      const tks = extractTokens(normalizeProjectName(m));
-      for (const t of tks) tokFreq[t] = (tokFreq[t] || 0) + 1;
-    }
+  const grouping={};
+  for(const cl of clusters){
+    const tokFreq={};
+    for(const m of cl.members){for(const t of extractTokens(normalizeProjectName(m))) tokFreq[t]=(tokFreq[t]||0)+1;}
     let canonical;
-    const sortedTokens = Object.entries(tokFreq).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0]));
-    if (sortedTokens.length === 0) {
-      canonical = cl.members[0]; // fallback: raw
-    } else {
-      // Take top token as canonical, but prefer a token that occurs in all members
-      const memberCount = cl.members.length;
-      const universalToken = sortedTokens.find(([t,c]) => c === memberCount);
-      const chosen = universalToken ? universalToken[0] : sortedTokens[0][0];
-      canonical = capitalize(chosen);
-    }
-    // Handle collision: if canonical already exists, append distinguishing token
-    let finalName = canonical;
-    let counter = 2;
-    while (grouping[finalName] && grouping[finalName].length > 0 && 
-           !cl.members.every(m => grouping[finalName].includes(m))) {
-      // Try to append another significant token
-      const nextTok = sortedTokens.find(([t]) => t.toLowerCase() !== canonical.toLowerCase());
-      if (nextTok && counter === 2) {
-        finalName = canonical + ' ' + capitalize(nextTok[0]);
-        counter++;
-      } else {
-        finalName = canonical + ' (' + counter + ')';
-        counter++;
-      }
-    }
-    grouping[finalName] = cl.members;
+    const sorted=Object.entries(tokFreq).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+    if(sorted.length===0) canonical=cl.members[0];
+    else{const universal=sorted.find(([t,c])=>c===cl.members.length);canonical=capitalize((universal?universal[0]:sorted[0][0]));}
+    let finalName=canonical, counter=2;
+    while(grouping[finalName] && !cl.members.every(m=>grouping[finalName].includes(m))){finalName=canonical+' ('+counter+')';counter++;}
+    grouping[finalName]=cl.members;
   }
   return grouping;
 }
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function buildRawToCanonical(g){const m={};for(const[c,r] of Object.entries(g))for(const x of r) m[x]=c;return m;}
 
-function capitalize(s) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
+function init(){loadNormConfig();loadRecords();setupUpload();refreshUI();}
+function loadNormConfig(){const raw=localStorage.getItem(NORM_KEY);if(raw){const cfg=JSON.parse(raw);normConfig=cfg.perTeamlid||{...DEFAULT_NORM};normDefault=cfg.default||DEFAULT_NORM_FALLBACK;}else{normConfig={...DEFAULT_NORM};normDefault=DEFAULT_NORM_FALLBACK;}document.getElementById('normDefault').value=normDefault;}
+function saveNormConfig(){normDefault=parseFloat(document.getElementById('normDefault').value)||DEFAULT_NORM_FALLBACK;document.querySelectorAll('#normRows input').forEach(inp=>{const n=inp.dataset.name;const v=parseFloat(inp.value);if(n && !isNaN(v)) normConfig[n]=v;});localStorage.setItem(NORM_KEY,JSON.stringify({perTeamlid:normConfig,default:normDefault}));refreshUI();}
+function getNormFor(n){if(normConfig[n]!==undefined) return normConfig[n];const f=n.split(' ')[0];if(normConfig[f]!==undefined) return normConfig[f];return normDefault;}
+function loadRecords(){const raw=localStorage.getItem(STORAGE_KEY);records=raw?JSON.parse(raw):[];if(records.length>0) rebuildGrouping();}
+function saveRecords(){localStorage.setItem(STORAGE_KEY,JSON.stringify(records));}
+
+function makeBackup(){
+  const ts=new Date().toISOString().replace(/[-:T]/g,'').slice(0,13);
+  const key='bezettingTool_backup_'+ts;
+  localStorage.setItem(key,JSON.stringify(records));
+  return key;
+}
+function clearData(){
+  if(records.length===0){alert("Er is geen data om te wissen.");return;}
+  if(!confirm(`Weet je zeker dat je ALLE ${records.length} regels wilt wissen?\n\nEr wordt eerst een backup gemaakt.`)) return;
+  const bkKey=makeBackup();
+  records=[];projectGrouping={};saveRecords();refreshUI();
+  alert(`✅ Data gewist.\nBackup opgeslagen als: ${bkKey}`);
+}
+function cleanOldData(){
+  const weeks=parseInt(document.getElementById('cleanupWeeks').value)||52;
+  if(weeks<1){alert("Aantal weken moet minimaal 1 zijn.");return;}
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-weeks*7);
+  const cutoffKey=`${cutoff.getFullYear()}-${String(getWeekNumber(cutoff.toISOString().slice(0,10))).padStart(2,'0')}`;
+  const before=records.length;
+  const filtered=records.filter(r=>{const key=`${r.year}-${String(r.week).padStart(2,'0')}`;return key>=cutoffKey;});
+  const removed=before-filtered.length;
+  if(removed===0){alert(`Geen data ouder dan ${weeks} weken gevonden.`);return;}
+  if(!confirm(`${removed} regel(s) ouder dan ${weeks} weken worden verwijderd.\n\nDoorgaan?`)) return;
+  const bkKey=makeBackup();
+  records=filtered;rebuildGrouping();saveRecords();refreshUI();
+  alert(`✅ ${removed} regel(s) verwijderd.\nBackup: ${bkKey}`);
 }
 
-function buildRawToCanonical(grouping) {
-  const map = {};
-  for (const [canon, rawList] of Object.entries(grouping)) {
-    for (const r of rawList) map[r] = canon;
-  }
-  return map;
-}
+function toggleNormConfig(){const el=document.getElementById('normConfig');el.style.display=el.style.display==='none'?'block':'none';renderNormConfig();}
+function renderNormConfig(){const tl=[...new Set(records.map(r=>r.medewerker))].sort();Object.keys(DEFAULT_NORM).forEach(n=>{if(!tl.includes(n)) tl.push(n);});const c=document.getElementById('normRows');if(tl.length===0){c.innerHTML='<div style="color:var(--muted);font-size:13px">Nog geen teamleden geladen.</div>';return;}c.innerHTML=tl.map(n=>{const v=normConfig[n]!==undefined?normConfig[n]:getNormFor(n);return `<div class="config-row"><label style="min-width:180px">${escapeHtml(n)}</label><input type="number" min="0" max="60" step="1" value="${v}" data-name="${escapeHtml(n)}" onchange="saveNormConfig()"/><span style="color:var(--muted);font-size:12px">uur/week</span></div>`;}).join('');}
 
-// ---------- Init & storage ----------
-function init() {
-  loadNormConfig();
-  loadRecords();
-  setupUpload();
-  refreshUI();
-}
+function setupUpload(){const z=document.getElementById('uploadZone'),i=document.getElementById('fileInput');z.addEventListener('click',()=>i.click());z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('dragover');});z.addEventListener('dragleave',()=>z.classList.remove('dragover'));z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('dragover');if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);});i.addEventListener('change',e=>{if(e.target.files.length) handleFile(e.target.files[0]);});}
 
-function loadNormConfig() {
-  const raw = localStorage.getItem(NORM_KEY);
-  if (raw) {
-    const cfg = JSON.parse(raw);
-    normConfig = cfg.perTeamlid || {...DEFAULT_NORM};
-    normDefault = cfg.default || DEFAULT_NORM_FALLBACK;
-  } else {
-    normConfig = {...DEFAULT_NORM};
-    normDefault = DEFAULT_NORM_FALLBACK;
-  }
-  document.getElementById('normDefault').value = normDefault;
-}
+function recordKey(r){return `${(r.medewerker||'').toLowerCase().trim()}|${(r.projectRaw||'').toLowerCase().trim()}|${r.datum||''}|${r.uren}`;}
 
-function saveNormConfig() {
-  normDefault = parseFloat(document.getElementById('normDefault').value) || DEFAULT_NORM_FALLBACK;
-  document.querySelectorAll('#normRows input').forEach(inp => {
-    const name = inp.dataset.name;
-    const val = parseFloat(inp.value);
-    if (name && !isNaN(val)) normConfig[name] = val;
-  });
-  localStorage.setItem(NORM_KEY, JSON.stringify({perTeamlid: normConfig, default: normDefault}));
-  refreshUI();
-}
-
-function getNormFor(name) {
-  if (normConfig[name] !== undefined) return normConfig[name];
-  const first = name.split(' ')[0];
-  if (normConfig[first] !== undefined) return normConfig[first];
-  return normDefault;
-}
-
-function loadRecords() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  records = raw ? JSON.parse(raw) : [];
-  if (records.length > 0) rebuildGrouping();
-}
-
-function saveRecords() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-}
-
-function clearData() {
-  if (!confirm("Weet je zeker dat je alle bezetting-data wilt wissen?")) return;
-  records = [];
-  projectGrouping = {};
-  saveRecords();
-  refreshUI();
-}
-
-function toggleNormConfig() {
-  const el = document.getElementById('normConfig');
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
-  renderNormConfig();
-}
-
-function renderNormConfig() {
-  const teamleden = [...new Set(records.map(r => r.medewerker))].sort();
-  Object.keys(DEFAULT_NORM).forEach(n => { if (!teamleden.includes(n)) teamleden.push(n); });
-  const container = document.getElementById('normRows');
-  if (teamleden.length === 0) {
-    container.innerHTML = '<div style="color:var(--muted);font-size:13px">Nog geen teamleden geladen. Upload eerst data.</div>';
-    return;
-  }
-  container.innerHTML = teamleden.map(name => {
-    const val = normConfig[name] !== undefined ? normConfig[name] : getNormFor(name);
-    return `<div class="config-row">
-      <label style="min-width:180px">${escapeHtml(name)}</label>
-      <input type="number" min="0" max="60" step="1" value="${val}" data-name="${escapeHtml(name)}" onchange="saveNormConfig()"/>
-      <span style="color:var(--muted);font-size:12px">uur/week</span>
-    </div>`;
-  }).join('');
-}
-
-// ---------- Upload ----------
-function setupUpload() {
-  const zone = document.getElementById('uploadZone');
-  const input = document.getElementById('fileInput');
-  zone.addEventListener('click', () => input.click());
-  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
-  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-  zone.addEventListener('drop', e => {
-    e.preventDefault(); zone.classList.remove('dragover');
-    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-  });
-  input.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
-}
-
-function handleFile(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, {type:'array', cellDates:true});
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, {defval:'', raw:false, dateNF:'yyyy-mm-dd'});
-      const parsed = parseRows(rows);
-      if (parsed.length === 0) {
-        alert("Geen bruikbare regels gevonden. Controleer of de kolommen 'Medewerker', 'Projectnaam', 'Week', 'Datum', 'Totaal' bestaan.");
+function handleFile(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=new Uint8Array(e.target.result);
+      const wb=XLSX.read(d,{type:'array',cellDates:true});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false,dateNF:'yyyy-mm-dd'});
+      const {parsed, debug}=parseRows(rows);
+      lastImportDebug=debug;
+      if(parsed.length===0){
+        showDebugModal();
+        alert("Geen bruikbare regels gevonden. Bekijk de debug-info voor details.");
         return;
       }
-      if (records.length > 0 && !confirm(`Bestaande data (${records.length} regels) vervangen door ${parsed.length} nieuwe regels?`)) return;
-      records = parsed;
-      rebuildGrouping();
-      saveRecords();
-      refreshUI();
-      alert(`✅ ${parsed.length} regels geladen. ${Object.keys(projectGrouping).length} unieke projecten na groepering.`);
-    } catch(err) {
-      alert("Fout bij lezen van Excel: " + err.message);
-    }
+      if(records.length===0){
+        records=parsed;
+        rebuildGrouping();saveRecords();refreshUI();
+        showDebugModal();
+        return;
+      }
+      const merge=confirm(
+        `${parsed.length} regels gevonden.\n\n` +
+        `OK = TOEVOEGEN aan bestaande ${records.length} regels (aanbevolen)\n` +
+        `Annuleren = ALLES VERVANGEN (backup wordt gemaakt)`
+      );
+      if(merge){
+        const existingKeys=new Set(records.map(recordKey));
+        let added=0, skipped=0;
+        for(const p of parsed){
+          if(existingKeys.has(recordKey(p))){skipped++;continue;}
+          records.push(p);existingKeys.add(recordKey(p));added++;
+        }
+        debug.merged={added, skippedAsDuplicate: skipped, totalNow: records.length};
+        rebuildGrouping();saveRecords();refreshUI();
+      } else {
+        const bkKey=makeBackup();
+        records=parsed;
+        debug.replaced={backup: bkKey};
+        rebuildGrouping();saveRecords();refreshUI();
+      }
+      showDebugModal();
+    }catch(err){alert("Fout bij lezen van Excel: "+err.message);console.error(err);}
   };
-  reader.readAsArrayBuffer(file);
+  r.readAsArrayBuffer(file);
+  document.getElementById('fileInput').value="";
 }
 
-function parseRows(rows) {
-  const out = [];
-  if (rows.length === 0) return out;
-  const sample = rows[0];
-  const keys = Object.keys(sample);
-  const findKey = (patterns) => {
-    for (const k of keys) {
-      const kl = k.toLowerCase();
-      if (patterns.some(p => kl.includes(p))) return k;
-    }
-    return null;
+function parseRows(rows){
+  const out=[];
+  const debug={
+    totalRows: rows.length,
+    parsed: 0,
+    skipped: {},
+    columnsDetected: {},
+    columnsAll: [],
+    uniqueTeamleden: {},
+    sampleRows: rows.slice(0,3),
+    warnings: []
   };
-  const kMed = findKey(['medewerker','naam','teamlid']);
-  const kProj = findKey(['projectnaam']) || findKey(['project']);
-  const kWeek = findKey(['week']);
-  const kDatum = findKey(['datum','date']);
-  const kUur = findKey(['totaal']) || findKey(['uren','uur','hours']);
+  if(rows.length===0) return {parsed:out, debug};
 
-  if (!kMed || !kUur) return out;
+  const keys=Object.keys(rows[0]);
+  debug.columnsAll=keys;
+  const find=p=>keys.find(k=>p.some(x=>k.toLowerCase().includes(x)));
 
-  for (const r of rows) {
-    const med = String(r[kMed] || '').trim();
-    const projRaw = kProj ? String(r[kProj] || '').trim() : 'Onbekend';
-    const uur = parseFloat(String(r[kUur]).replace(',', '.'));
-    if (!med || isNaN(uur) || uur <= 0) continue;
-    let week = kWeek ? String(r[kWeek] || '').trim() : '';
-    let datum = kDatum ? String(r[kDatum] || '').trim() : '';
-    datum = normalizeDate(datum);
-    let year = null;
-    if (datum) {
-      const [y] = datum.split('-');
-      year = parseInt(y);
-      if (!week) week = getWeekNumber(datum);
+  const kMed=find(['medewerker','naam','teamlid','consultant','persoon','gebruiker','employee','resource']);
+  const kProj=find(['projectnaam'])||find(['project']);
+  const kWeek=find(['week']);
+  const kDatum=find(['datum','date']);
+  const kUur=find(['totaal'])||find(['uren','uur','hours']);
+
+  // Percentage columns as fallback for Totaal
+  const kPct100=keys.find(k=>k.includes('100'));
+  const kPct135=keys.find(k=>k.includes('135'));
+  const kPct150=keys.find(k=>k.includes('150'));
+  const kPct200=keys.find(k=>k.includes('200'));
+
+  debug.columnsDetected={
+    Medewerker: kMed||'❌ niet gevonden',
+    Projectnaam: kProj||'❌ niet gevonden',
+    Week: kWeek||'⚠️ niet gevonden (wordt uit datum berekend)',
+    Datum: kDatum||'⚠️ niet gevonden',
+    Totaal: kUur||'⚠️ niet gevonden (fallback: som van percentages)',
+    'Pct 100%': kPct100||'-',
+    'Pct 135%': kPct135||'-',
+    'Pct 150%': kPct150||'-',
+    'Pct 200%': kPct200||'-'
+  };
+
+  if(!kMed){debug.warnings.push("Kolom 'Medewerker' niet gevonden - kan geen regels verwerken.");return {parsed:out, debug};}
+
+  const skip=(reason)=>{debug.skipped[reason]=(debug.skipped[reason]||0)+1;};
+
+  for(const r of rows){
+    const med=String(r[kMed]||'').trim();
+    if(!med){skip('leeg medewerker');continue;}
+
+    const projRaw=kProj?String(r[kProj]||'').trim():'Onbekend';
+
+    // Compute uren: prefer Totaal, fallback to sum of percentages
+    let uur=0;
+    if(kUur){
+      uur=parseFloat(String(r[kUur]).replace(',','.'));
+      if(isNaN(uur)) uur=0;
     }
-    if (!week) continue;
-    week = parseInt(week);
-    if (!year && datum) year = new Date(datum).getFullYear();
-    if (!year) year = new Date().getFullYear();
-    out.push({medewerker: med, projectRaw: projRaw || 'Onbekend', week: week, year: year, datum: datum, uren: uur});
+    if(uur<=0){
+      // Fallback: sum percentage columns
+      const p100=kPct100?parseFloat(String(r[kPct100]||0).replace(',','.'))||0:0;
+      const p135=kPct135?parseFloat(String(r[kPct135]||0).replace(',','.'))||0:0;
+      const p150=kPct150?parseFloat(String(r[kPct150]||0).replace(',','.'))||0:0;
+      const p200=kPct200?parseFloat(String(r[kPct200]||0).replace(',','.'))||0:0;
+      uur=p100+p135+p150+p200;
+    }
+    if(!uur || uur<=0){skip('geen uren (Totaal en percentages leeg)');continue;}
+
+    let weekRaw=kWeek?String(r[kWeek]||'').trim():'';
+    let datumRaw=kDatum?String(r[kDatum]||'').trim():'';
+
+    const weekHint=weekRaw?parseInt(weekRaw):null;
+    const datum=normalizeDate(datumRaw, weekHint);
+
+    let year=null, week=null;
+    if(datum){
+      year=parseInt(datum.split('-')[0]);
+      week=weekHint || getWeekNumber(datum);
+    } else if(weekHint){
+      week=weekHint;
+      year=new Date().getFullYear();
+    }
+
+    if(!week){skip('geen week/datum');continue;}
+
+    out.push({medewerker:med, projectRaw:projRaw||'Onbekend', week:parseInt(week), year:year||new Date().getFullYear(), datum:datum||'', uren:uur});
+    debug.uniqueTeamleden[med]=(debug.uniqueTeamleden[med]||0)+1;
   }
-  return out;
+
+  debug.parsed=out.length;
+  return {parsed:out, debug};
 }
 
-function rebuildGrouping() {
-  const rawNames = [...new Set(records.map(r => r.projectRaw))];
-  projectGrouping = buildProjectGrouping(rawNames);
-  const rawToCanon = buildRawToCanonical(projectGrouping);
-  records.forEach(r => { r.project = rawToCanon[r.projectRaw] || r.projectRaw; });
-}
+function rebuildGrouping(){const raws=[...new Set(records.map(r=>r.projectRaw))];projectGrouping=buildProjectGrouping(raws);const map=buildRawToCanonical(projectGrouping);records.forEach(r=>{r.project=map[r.projectRaw]||r.projectRaw;});}
 
-function normalizeDate(s) {
-  if (!s) return '';
-  s = String(s).trim();
-  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
-  const m = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
-  if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
-  const m2 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m2) return `${m2[3]}-${m2[1].padStart(2,'0')}-${m2[2].padStart(2,'0')}`;
-  const d = new Date(s);
-  if (!isNaN(d)) return d.toISOString().slice(0,10);
+function normalizeDate(s, weekHint){
+  if(!s) return '';
+  s=String(s).trim();
+  // ISO already
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  // Match DD-MM-YYYY or DD/MM/YYYY or MM/DD/YYYY
+  const m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+  if(m){
+    const a=parseInt(m[1]), b=parseInt(m[2]), y=parseInt(m[3]);
+    // If first > 12, definitely DD/MM
+    if(a>12){return `${y}-${String(b).padStart(2,'0')}-${String(a).padStart(2,'0')}`;}
+    // If second > 12, definitely MM/DD (US)
+    if(b>12){return `${y}-${String(a).padStart(2,'0')}-${String(b).padStart(2,'0')}`;}
+    // Ambiguous - try to match with week hint
+    if(weekHint){
+      const tryDDMM=`${y}-${String(b).padStart(2,'0')}-${String(a).padStart(2,'0')}`;
+      const tryMMDD=`${y}-${String(a).padStart(2,'0')}-${String(b).padStart(2,'0')}`;
+      const wDDMM=getWeekNumber(tryDDMM);
+      const wMMDD=getWeekNumber(tryMMDD);
+      if(wDDMM===weekHint && wMMDD!==weekHint) return tryDDMM;
+      if(wMMDD===weekHint && wDDMM!==weekHint) return tryMMDD;
+    }
+    // Default to European DD/MM
+    return `${y}-${String(b).padStart(2,'0')}-${String(a).padStart(2,'0')}`;
+  }
+  // Try native Date parse
+  const d=new Date(s);
+  if(!isNaN(d)) return d.toISOString().slice(0,10);
   return '';
 }
 
-function getWeekNumber(dateStr) {
-  const d = new Date(dateStr);
-  d.setHours(0,0,0,0);
-  d.setDate(d.getDate() + 4 - (d.getDay()||7));
-  const yearStart = new Date(d.getFullYear(),0,1);
-  return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
-}
+function getWeekNumber(ds){const d=new Date(ds);d.setHours(0,0,0,0);d.setDate(d.getDate()+4-(d.getDay()||7));const y=new Date(d.getFullYear(),0,1);return Math.ceil((((d-y)/86400000)+1)/7);}
 
-// ---------- Demo data ----------
-function loadDemoData() {
-  const rawNames = {
-    gildenlaan: "case 289900 TGP AM 37566A MS-Net Gildenlaan Velsen-Noord",
-    wijkerstraatweg: "case 289084 TGP AM 37567A MS_Net Wijkerstraatweg Velsen-Noord",
-    ramplaan: "Project: 37538_Ramplaankwartier Haarlem",
-    dentexlaan: "Project: 37539_Den Texlaan Aerdenhout",
-    zadelmakerstraat: "BTO_Zadelmakerstraat_0299312",
-    muiderslotweg: "Case 289264_Muiderslotweg Haarlem HL",
-    kleverlaan: "case 0288181 Kleverlaan Haarlem e.o.",
-    hartelustlaan: "Project: 37524 Hartelustlaan Bloemendaal",
-    bloemendaalseweg: "Project: 37536_Bloemendaalseweg Overveen",
-    middenweg: "Project: 37599_Middenweg Ouderkerk a.d. Amstel",
-    planetenlaan: "Case 289500_Planetenlaan Haarlem HL",
-    oosteinde: "Project: 37610_Oosteinde Aalsmeer"
-  };
-  // Generate ~12 weeks of demo data
-  const demo = [];
-  const teamleden = ["Barry","Mara","Wouter Lindenbergh","Wesley","Jacob Polak","Stan","Lotfy"];
-  const startWeek = 16, endWeek = 27;
-  for (let w = startWeek; w <= endWeek; w++) {
-    teamleden.forEach(m => {
-      // Assign 2-4 projects per person per week with random hours
-      const nProj = 2 + Math.floor(Math.random()*3);
-      const projKeys = Object.keys(rawNames).sort(()=>Math.random()-0.5).slice(0, nProj);
-      let norm = 40;
-      if (m === "Barry" || m === "Mara") norm = 36;
-      if (m === "Wouter Lindenbergh") norm = 32;
-      // Aim near norm with some variance
-      const target = norm + (Math.random()*8 - 4);
-      let remaining = target;
-      projKeys.forEach((pk, i) => {
-        const share = i === projKeys.length-1 ? remaining : Math.round((remaining/(projKeys.length-i))*Math.random()*2);
-        const hrs = Math.max(2, Math.round(share*2)/2);
-        remaining -= hrs;
-        // pick a day within the week (Mo-Fr)
-        const day = 1 + Math.floor(Math.random()*5);
-        const date = weekToDate(2026, w, day);
-        demo.push({medewerker:m, projectRaw:rawNames[pk], week:w, year:2026, datum:date, uren:hrs});
-      });
+function loadDemoData(){
+  const raw={gildenlaan:"case 289900 TGP AM 37566A MS-Net Gildenlaan Velsen-Noord",wijkerstraatweg:"case 289084 TGP AM 37567A MS_Net Wijkerstraatweg Velsen-Noord",ramplaan:"Project: 37538_Ramplaankwartier Haarlem",dentexlaan:"Project: 37539_Den Texlaan Aerdenhout",zadelmakerstraat:"BTO_Zadelmakerstraat_0299312",muiderslotweg:"Case 289264_Muiderslotweg Haarlem HL",kleverlaan:"case 0288181 Kleverlaan Haarlem e.o.",hartelustlaan:"Project: 37524 Hartelustlaan Bloemendaal",bloemendaalseweg:"Project: 37536_Bloemendaalseweg Overveen",middenweg:"Project: 37599_Middenweg Ouderkerk a.d. Amstel",planetenlaan:"Case 289500_Planetenlaan Haarlem HL",oosteinde:"Project: 37610_Oosteinde Aalsmeer"};
+  const demo=[], tl=["Barry","Mara","Wouter Lindenbergh","Wesley","Jacob Polak","Stan","Lotfy"];
+  for(let w=16;w<=27;w++){
+    tl.forEach(m=>{
+      const nProj=2+Math.floor(Math.random()*3);
+      const keys=Object.keys(raw).sort(()=>Math.random()-0.5).slice(0,nProj);
+      let norm=40;if(m==="Barry"||m==="Mara") norm=36;if(m==="Wouter Lindenbergh") norm=32;
+      const target=norm+(Math.random()*8-4);let remaining=target;
+      keys.forEach((pk,i)=>{const share=i===keys.length-1?remaining:Math.round((remaining/(keys.length-i))*Math.random()*2);const hrs=Math.max(2,Math.round(share*2)/2);remaining-=hrs;const day=1+Math.floor(Math.random()*5);demo.push({medewerker:m,projectRaw:raw[pk],week:w,year:2026,datum:weekToDate(2026,w,day),uren:hrs});});
     });
   }
-  if (records.length > 0 && !confirm(`Bestaande data vervangen door ${demo.length} voorbeeldregels?`)) return;
-  records = demo;
-  rebuildGrouping();
-  saveRecords();
-  refreshUI();
+  if(records.length>0 && !confirm(`Vervangen door ${demo.length} voorbeeldregels?`)) return;
+  if(records.length>0) makeBackup();
+  records=demo;rebuildGrouping();saveRecords();refreshUI();
+}
+function weekToDate(y,w,d){const j4=new Date(y,0,4);const dd=(j4.getDay()||7)-1;const ws=new Date(j4);ws.setDate(j4.getDate()-dd+(w-1)*7+(d-1));return ws.toISOString().slice(0,10);}
+
+function updateStorageInfo(){
+  const el=document.getElementById('storageInfo');
+  if(records.length===0){el.style.display='none';return;}
+  const wks=getAvailableWeeks();
+  const teamCount=new Set(records.map(r=>r.medewerker)).size;
+  const projCount=Object.keys(projectGrouping).length;
+  const firstWk=wks[0], lastWk=wks[wks.length-1];
+  const fmtWk=k=>{const[y,w]=k.split('-');return `week ${parseInt(w)} · ${y}`;};
+  const range = firstWk===lastWk ? fmtWk(firstWk) : `${fmtWk(firstWk)} t/m ${fmtWk(lastWk)}`;
+  el.style.display='block';
+  el.innerHTML=`📊 <strong>In geheugen:</strong> ${records.length} regels · ${wks.length} weken data · ${teamCount} teamleden · ${projCount} projecten · Periode: ${range}`;
 }
 
-function weekToDate(year, week, dayOfWeek) {
-  // Approx: Jan 4 is always in week 1 (ISO)
-  const jan4 = new Date(year, 0, 4);
-  const dayDiff = (jan4.getDay() || 7) - 1;
-  const weekStart = new Date(jan4);
-  weekStart.setDate(jan4.getDate() - dayDiff + (week-1)*7 + (dayOfWeek-1));
-  return weekStart.toISOString().slice(0,10);
-}
-
-// ---------- UI ----------
-function refreshUI() {
-  const empty = document.getElementById('emptyState');
-  const main = document.getElementById('mainContent');
-  const banner = document.getElementById('groupingBanner');
-  if (records.length === 0) {
-    empty.style.display = 'block';
-    main.style.display = 'none';
-    banner.style.display = 'none';
-    return;
-  }
-  empty.style.display = 'none';
-  main.style.display = 'block';
-
-  // Grouping banner
-  const rawCount = new Set(records.map(r=>r.projectRaw)).size;
-  const canonCount = Object.keys(projectGrouping).length;
-  banner.style.display = 'flex';
-  document.getElementById('groupingText').innerHTML =
-    `<strong>${rawCount}</strong> ruwe projectnaam-varianten automatisch gegroepeerd naar <strong>${canonCount}</strong> unieke projecten.`;
-
+function refreshUI(){const empty=document.getElementById('emptyState'),main=document.getElementById('mainContent'),banner=document.getElementById('groupingBanner');
+  updateStorageInfo();
+  if(records.length===0){empty.style.display='block';main.style.display='none';banner.style.display='none';return;}
+  empty.style.display='none';main.style.display='block';
+  const rawCount=new Set(records.map(r=>r.projectRaw)).size;const canonCount=Object.keys(projectGrouping).length;
+  banner.style.display='flex';
+  document.getElementById('groupingText').innerHTML=`<strong>${rawCount}</strong> ruwe projectnaam-varianten gegroepeerd naar <strong>${canonCount}</strong> unieke projecten.`;
   buildWeekSelect();
-  if (!currentWeekKey || !getAvailableWeeks().includes(currentWeekKey)) {
-    const weeks = getAvailableWeeks();
-    currentWeekKey = weeks[weeks.length - 1];
+  if(!currentWeekKey||!getAvailableWeeks().includes(currentWeekKey)){const wks=getAvailableWeeks();currentWeekKey=wks[wks.length-1];}
+  document.getElementById('weekSelect').value=currentWeekKey;
+  renderWeek();renderTrend();renderNormConfig();
+}
+function getAvailableWeeks(){return [...new Set(records.map(r=>`${r.year}-${String(r.week).padStart(2,'0')}`))].sort();}
+function buildWeekSelect(){const sel=document.getElementById('weekSelect');sel.innerHTML=getAvailableWeeks().map(w=>{const[y,wk]=w.split('-');return `<option value="${w}">Week ${parseInt(wk)} · ${y}</option>`;}).join('');}
+function changeWeek(dir){const wks=getAvailableWeeks(),idx=wks.indexOf(currentWeekKey);if(idx<0) return;const ni=idx+dir;if(ni<0||ni>=wks.length) return;currentWeekKey=wks[ni];document.getElementById('weekSelect').value=currentWeekKey;renderWeek();}
+function jumpToWeek(k){currentWeekKey=k;renderWeek();}
+function renderWeek(){const[year,wk]=currentWeekKey.split('-');document.getElementById('weekLabel').textContent=`Week ${parseInt(wk)} · ${year}`;const wks=getAvailableWeeks(),idx=wks.indexOf(currentWeekKey);document.getElementById('btnPrev').disabled=idx<=0;document.getElementById('btnNext').disabled=idx>=wks.length-1;
+  const wr=records.filter(r=>`${r.year}-${String(r.week).padStart(2,'0')}`===currentWeekKey);
+  const pT={},pP={};wr.forEach(r=>{pT[r.medewerker]=(pT[r.medewerker]||0)+r.uren;pP[r.project]=(pP[r.project]||0)+r.uren;});
+  const total=wr.reduce((s,r)=>s+r.uren,0);const names=Object.keys(pT);let u=0,o=0;
+  names.forEach(n=>{const nm=getNormFor(n),h=pT[n];if(h<nm-2) u++;else if(h>nm+2) o++;});
+  document.getElementById('kpi-team').textContent=names.length;
+  document.getElementById('kpi-total').textContent=total.toFixed(1)+'u';
+  document.getElementById('kpi-under').textContent=u;
+  document.getElementById('kpi-over').textContent=o;
+  const sub=`Week ${parseInt(wk)} · ${year} · ${wr.length} boekingen · ${total.toFixed(1)}u totaal`;
+  document.getElementById('chartTeamSubtitle').textContent=sub;
+  document.getElementById('chartProjSubtitle').textContent=sub;
+  document.getElementById('chartProjBarSubtitle').textContent=sub;
+  renderTeamChart(pT);renderProjChart(pP);renderProjBarChart(pP);renderDetailTable(pT,wr);
+}
+function renderTeamChart(pT){const names=Object.keys(pT).sort();const hours=names.map(n=>pT[n]);const norms=names.map(n=>getNormFor(n));const colors=names.map((n,i)=>{const nm=norms[i],h=hours[i];if(h<nm-2) return '#F59E0B';if(h>nm+2) return '#EF4444';return '#10B981';});const labels=names.map((n,i)=>`${n} (${Math.round(hours[i]/norms[i]*100)}%)`);
+  if(chartTeam) chartTeam.destroy();
+  chartTeam=new Chart(document.getElementById('chartTeam'),{type:'bar',data:{labels,datasets:[{label:'Geboekte uren',data:hours,backgroundColor:colors,borderRadius:6},{label:'Normuren',data:norms,type:'line',borderColor:'#1F4E78',borderWidth:2,borderDash:[6,4],pointRadius:5,pointBackgroundColor:'#1F4E78',fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,title:{display:true,text:'Uren'}}}}});
+}
+function renderProjChart(pP){const p=Object.keys(pP),v=p.map(x=>pP[x]);const pal=['#1F4E78','#2E6DA4','#4A90E2','#8B5CF6','#F59E0B','#10B981','#EF4444','#3B82F6','#EC4899','#14B8A6','#F97316','#84CC16'];if(chartProj) chartProj.destroy();chartProj=new Chart(document.getElementById('chartProj'),{type:'doughnut',data:{labels:p,datasets:[{data:v,backgroundColor:p.map((_,i)=>pal[i%pal.length])}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}});}
+function renderProjBarChart(pP){const s=Object.entries(pP).sort((a,b)=>b[1]-a[1]);const p=s.map(x=>x[0]),v=s.map(x=>x[1]);if(chartProjBar) chartProjBar.destroy();chartProjBar=new Chart(document.getElementById('chartProjBar'),{type:'bar',data:{labels:p,datasets:[{label:'Uren',data:v,backgroundColor:'#1F4E78',borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,title:{display:true,text:'Uren'}}}}});}
+function renderDetailTable(pT,wr){const body=document.getElementById('detailBody');const names=Object.keys(pT).sort();body.innerHTML=names.map(n=>{const nm=getNormFor(n),h=pT[n],diff=h-nm,pct=Math.round(h/nm*100);let bc='badge-ok',bl='Op schema';if(h<nm-2){bc='badge-under';bl='Onderbezet';}else if(h>nm+2){bc='badge-over';bl='Overbezet';}const pc=new Set(wr.filter(r=>r.medewerker===n).map(r=>r.project)).size;return `<tr class="clickable" onclick="toggleDetail('${escapeAttr(n)}')"><td><strong>${escapeHtml(n)}</strong></td><td>${nm}u</td><td><strong>${h.toFixed(1)}u</strong></td><td style="color:${diff<0?'#F59E0B':diff>0?'#EF4444':'#10B981'}">${diff>=0?'+':''}${diff.toFixed(1)}u</td><td>${pct}%</td><td><span class="badge ${bc}">${bl}</span></td><td>${pc}</td></tr><tr class="detail-row" id="detail-${cssId(n)}" style="display:none"><td colspan="7"><strong>Project-uitsplitsing:</strong>${renderProjBreakdown(n,wr)}</td></tr>`;}).join('');}
+function renderProjBreakdown(n,wr){const pm={};wr.filter(r=>r.medewerker===n).forEach(r=>{pm[r.project]=(pm[r.project]||0)+r.uren;});return Object.entries(pm).sort((a,b)=>b[1]-a[1]).map(([p,u])=>`<div class="project-mini"><span>${escapeHtml(p)}</span><span class="hours">${u.toFixed(1)}u</span></div>`).join('');}
+function toggleDetail(n){const r=document.getElementById('detail-'+cssId(n));if(!r) return;r.style.display=r.style.display==='none'?'table-row':'none';}
+
+function renderTrend(){const ps=parseInt(document.getElementById('trendPeriod').value);const all=getAvailableWeeks();const wks=ps>0?all.slice(-ps):all;document.getElementById('trendSubtitle').textContent=ps>0?`Uren per teamlid over de laatste ${wks.length} weken`:`Uren per teamlid over alle beschikbare weken (${wks.length})`;
+  const tl=[...new Set(records.map(r=>r.medewerker))].sort();const pal=['#1F4E78','#F59E0B','#10B981','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316','#3B82F6','#84CC16'];const ds=[];
+  tl.forEach((n,i)=>{const c=pal[i%pal.length];const hpw=wks.map(w=>records.filter(r=>r.medewerker===n && `${r.year}-${String(r.week).padStart(2,'0')}`===w).reduce((s,r)=>s+r.uren,0));ds.push({label:n,data:hpw,borderColor:c,backgroundColor:c+'20',borderWidth:2.5,pointRadius:3,pointHoverRadius:6,tension:0.3,fill:false});const nm=getNormFor(n);ds.push({label:n+' (norm '+nm+'u)',data:wks.map(()=>nm),borderColor:c,borderDash:[4,4],borderWidth:1,pointRadius:0,fill:false,hidden:true});});
+  const wl=wks.map(w=>`W${parseInt(w.split('-')[1])}`);
+  if(chartTrend) chartTrend.destroy();
+  chartTrend=new Chart(document.getElementById('chartTrend'),{type:'line',data:{labels:wl,datasets:ds},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'nearest',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:14,font:{size:12}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}u`}}},scales:{y:{beginAtZero:true,title:{display:true,text:'Uren per week'}},x:{title:{display:true,text:'Week'}}}}});
+  const kpi=document.getElementById('trendKPIs');const avgs=tl.map(n=>{const totals=wks.map(w=>records.filter(r=>r.medewerker===n && `${r.year}-${String(r.week).padStart(2,'0')}`===w).reduce((s,r)=>s+r.uren,0));const aw=totals.filter(t=>t>0);const avg=aw.length>0?aw.reduce((a,b)=>a+b,0)/aw.length:0;const nm=getNormFor(n);return{name:n,avg,norm:nm,pct:nm>0?Math.round(avg/nm*100):0};}).filter(x=>x.avg>0);
+  kpi.innerHTML=avgs.map(a=>{let c='#10B981';if(a.pct<90) c='#F59E0B';else if(a.pct>110) c='#EF4444';return `<div style="display:flex;flex-direction:column;padding:8px 12px;background:var(--bg);border-radius:8px;border-left:3px solid ${c}"><span style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600">${escapeHtml(a.name)}</span><span style="font-size:18px;font-weight:700;color:${c}">${a.avg.toFixed(1)}u / ${a.norm}u</span><span style="font-size:11px;color:var(--muted)">gem. per actieve week (${a.pct}%)</span></div>`;}).join('');
+}
+
+function openGroupingModal(){const list=document.getElementById('groupingList');const s=Object.entries(projectGrouping).sort((a,b)=>a[0].localeCompare(b[0]));list.innerHTML=s.map(([c,r])=>`<div class="group-item"><div class="canonical">${escapeHtml(c)} <span style="color:var(--muted);font-weight:400;font-size:12px">(${r.length} variant${r.length>1?'en':''})</span></div><div class="variants">${r.map(x=>`<div>• ${escapeHtml(x)}</div>`).join('')}</div></div>`).join('');document.getElementById('groupingModal').classList.add('active');}
+function closeGroupingModal(){document.getElementById('groupingModal').classList.remove('active');}
+
+function openDebugModal(){
+  if(!lastImportDebug){alert("Nog geen import uitgevoerd in deze sessie.");return;}
+  showDebugModal();
+}
+function closeDebugModal(){document.getElementById('debugModal').classList.remove('active');}
+
+function showDebugModal(){
+  if(!lastImportDebug) return;
+  const d=lastImportDebug;
+  const totalSkipped=Object.values(d.skipped).reduce((a,b)=>a+b,0);
+  const successPct=d.totalRows>0?Math.round(d.parsed/d.totalRows*100):0;
+  const statusCls=successPct>=95?'debug-good':(successPct>=70?'debug-warn':'debug-bad');
+
+  let html=`<div class="debug-stat"><span>📄 Totaal rijen in Excel:</span><strong>${d.totalRows}</strong></div>`;
+  html+=`<div class="debug-stat"><span>✅ Succesvol ingelezen:</span><strong class="${statusCls}">${d.parsed} (${successPct}%)</strong></div>`;
+  html+=`<div class="debug-stat"><span>⚠️ Overgeslagen:</span><strong>${totalSkipped}</strong></div>`;
+
+  if(d.merged){
+    html+=`<div class="debug-stat"><span>🔗 Toegevoegd na dedup:</span><strong class="debug-good">${d.merged.added}</strong></div>`;
+    html+=`<div class="debug-stat"><span>🔁 Duplicaten overgeslagen:</span><strong>${d.merged.skippedAsDuplicate}</strong></div>`;
+    html+=`<div class="debug-stat"><span>📊 Totaal na merge:</span><strong>${d.merged.totalNow}</strong></div>`;
   }
-  document.getElementById('weekSelect').value = currentWeekKey;
-  renderWeek();
-  renderTrend();
-  renderNormConfig();
-}
+  if(d.replaced){
+    html+=`<div class="debug-stat"><span>♻️ Data vervangen · backup:</span><strong>${d.replaced.backup}</strong></div>`;
+  }
 
-function getAvailableWeeks() {
-  const set = new Set(records.map(r => `${r.year}-${String(r.week).padStart(2,'0')}`));
-  return [...set].sort();
-}
-
-function buildWeekSelect() {
-  const sel = document.getElementById('weekSelect');
-  const weeks = getAvailableWeeks();
-  sel.innerHTML = weeks.map(w => {
-    const [y, wk] = w.split('-');
-    return `<option value="${w}">Week ${parseInt(wk)} · ${y}</option>`;
-  }).join('');
-}
-
-function changeWeek(dir) {
-  const weeks = getAvailableWeeks();
-  const idx = weeks.indexOf(currentWeekKey);
-  if (idx === -1) return;
-  const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= weeks.length) return;
-  currentWeekKey = weeks[newIdx];
-  document.getElementById('weekSelect').value = currentWeekKey;
-  renderWeek();
-}
-
-function jumpToWeek(key) {
-  currentWeekKey = key;
-  renderWeek();
-}
-
-function renderWeek() {
-  const [year, wk] = currentWeekKey.split('-');
-  document.getElementById('weekLabel').textContent = `Week ${parseInt(wk)} · ${year}`;
-  const weeks = getAvailableWeeks();
-  const idx = weeks.indexOf(currentWeekKey);
-  document.getElementById('btnPrev').disabled = idx <= 0;
-  document.getElementById('btnNext').disabled = idx >= weeks.length - 1;
-
-  const weekRecs = records.filter(r => `${r.year}-${String(r.week).padStart(2,'0')}` === currentWeekKey);
-  const perTeam = {}, perProj = {};
-  weekRecs.forEach(r => {
-    perTeam[r.medewerker] = (perTeam[r.medewerker] || 0) + r.uren;
-    perProj[r.project] = (perProj[r.project] || 0) + r.uren;
-  });
-
-  const totalHours = weekRecs.reduce((s,r)=>s+r.uren, 0);
-  const teamNames = Object.keys(perTeam);
-  let under = 0, over = 0;
-  teamNames.forEach(n => {
-    const norm = getNormFor(n);
-    const h = perTeam[n];
-    if (h < norm - 2) under++;
-    else if (h > norm + 2) over++;
-  });
-  document.getElementById('kpi-team').textContent = teamNames.length;
-  document.getElementById('kpi-total').textContent = totalHours.toFixed(1) + 'u';
-  document.getElementById('kpi-under').textContent = under;
-  document.getElementById('kpi-over').textContent = over;
-
-  const subtitle = `Week ${parseInt(wk)} · ${year} · ${weekRecs.length} boekingen · ${totalHours.toFixed(1)}u totaal`;
-  document.getElementById('chartTeamSubtitle').textContent = subtitle;
-  document.getElementById('chartProjSubtitle').textContent = subtitle;
-  document.getElementById('chartProjBarSubtitle').textContent = subtitle;
-
-  renderTeamChart(perTeam);
-  renderProjChart(perProj);
-  renderProjBarChart(perProj);
-  renderDetailTable(perTeam, weekRecs);
-}
-
-function renderTeamChart(perTeam) {
-  const names = Object.keys(perTeam).sort();
-  const hours = names.map(n => perTeam[n]);
-  const norms = names.map(n => getNormFor(n));
-  const colors = names.map((n,i) => {
-    const norm = norms[i], h = hours[i];
-    if (h < norm - 2) return '#F59E0B';
-    if (h > norm + 2) return '#EF4444';
-    return '#10B981';
-  });
-  const labels = names.map((n,i) => `${n} (${Math.round(hours[i]/norms[i]*100)}%)`);
-
-  if (chartTeam) chartTeam.destroy();
-  chartTeam = new Chart(document.getElementById('chartTeam'), {
-    type:'bar',
-    data:{labels, datasets:[
-      {label:'Geboekte uren', data:hours, backgroundColor:colors, borderRadius:6},
-      {label:'Normuren', data:norms, type:'line', borderColor:'#1F4E78', borderWidth:2, borderDash:[6,4], pointRadius:5, pointBackgroundColor:'#1F4E78', fill:false}
-    ]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.y+'u'}}},
-      scales:{y:{beginAtZero:true, title:{display:true, text:'Uren'}}}
+  if(totalSkipped>0){
+    html+=`<h3>⚠️ Redenen voor overslaan</h3>`;
+    for(const [reason,count] of Object.entries(d.skipped)){
+      html+=`<div class="debug-stat"><span>${escapeHtml(reason)}:</span><strong>${count}</strong></div>`;
     }
-  });
+  }
+
+  html+=`<h3>🔍 Herkende kolommen</h3>`;
+  for(const [key,val] of Object.entries(d.columnsDetected)){
+    html+=`<div class="debug-stat"><span>${escapeHtml(key)}:</span><strong>${escapeHtml(String(val))}</strong></div>`;
+  }
+
+  html+=`<h3>👥 Unieke teamleden gevonden (${Object.keys(d.uniqueTeamleden).length})</h3>`;
+  const sortedTeam=Object.entries(d.uniqueTeamleden).sort((a,b)=>b[1]-a[1]);
+  for(const [name,count] of sortedTeam){
+    html+=`<div class="debug-stat"><span>${escapeHtml(name)}</span><strong>${count} regel(s)</strong></div>`;
+  }
+
+  if(d.warnings.length>0){
+    html+=`<h3>❗ Waarschuwingen</h3>`;
+    for(const w of d.warnings) html+=`<div class="debug-stat"><span class="debug-bad">${escapeHtml(w)}</span></div>`;
+  }
+
+  html+=`<h3>📋 Alle kolommen in Excel (${d.columnsAll.length})</h3>`;
+  html+=`<div class="debug-code">${escapeHtml(d.columnsAll.join(' · '))}</div>`;
+
+  html+=`<h3>📄 Eerste 3 rijen (voor inspectie)</h3>`;
+  html+=`<div class="debug-code">${escapeHtml(JSON.stringify(d.sampleRows, null, 2))}</div>`;
+
+  document.getElementById('debugContent').innerHTML=html;
+  document.getElementById('debugModal').classList.add('active');
 }
 
-function renderProjChart(perProj) {
-  const projects = Object.keys(perProj);
-  const values = projects.map(p => perProj[p]);
-  const palette = ['#1F4E78','#2E6DA4','#4A90E2','#8B5CF6','#F59E0B','#10B981','#EF4444','#3B82F6','#EC4899','#14B8A6','#F97316','#84CC16'];
-  if (chartProj) chartProj.destroy();
-  chartProj = new Chart(document.getElementById('chartProj'), {
-    type:'doughnut',
-    data:{labels:projects, datasets:[{data:values, backgroundColor:projects.map((_,i)=>palette[i%palette.length])}]},
-    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:12, font:{size:11}}}}}
-  });
-}
-
-function renderProjBarChart(perProj) {
-  const sorted = Object.entries(perProj).sort((a,b)=>b[1]-a[1]);
-  const projects = sorted.map(x=>x[0]);
-  const values = sorted.map(x=>x[1]);
-  if (chartProjBar) chartProjBar.destroy();
-  chartProjBar = new Chart(document.getElementById('chartProjBar'), {
-    type:'bar',
-    data:{labels:projects, datasets:[{label:'Uren', data:values, backgroundColor:'#1F4E78', borderRadius:6}]},
-    options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, title:{display:true, text:'Uren'}}}}
-  });
-}
-
-function renderDetailTable(perTeam, weekRecs) {
-  const body = document.getElementById('detailBody');
-  const names = Object.keys(perTeam).sort();
-  body.innerHTML = names.map(name => {
-    const norm = getNormFor(name);
-    const h = perTeam[name];
-    const diff = h - norm;
-    const pct = Math.round(h/norm*100);
-    let badgeCls = 'badge-ok', badgeLabel = 'Op schema';
-    if (h < norm - 2) { badgeCls='badge-under'; badgeLabel='Onderbezet'; }
-    else if (h > norm + 2) { badgeCls='badge-over'; badgeLabel='Overbezet'; }
-    const projCount = new Set(weekRecs.filter(r=>r.medewerker===name).map(r=>r.project)).size;
-    return `<tr class="clickable" onclick="toggleDetail('${escapeAttr(name)}')">
-      <td><strong>${escapeHtml(name)}</strong></td>
-      <td>${norm}u</td>
-      <td><strong>${h.toFixed(1)}u</strong></td>
-      <td style="color:${diff<0?'#F59E0B':diff>0?'#EF4444':'#10B981'}">${diff>=0?'+':''}${diff.toFixed(1)}u</td>
-      <td>${pct}%</td>
-      <td><span class="badge ${badgeCls}">${badgeLabel}</span></td>
-      <td>${projCount}</td>
-    </tr>
-    <tr class="detail-row" id="detail-${cssId(name)}" style="display:none"><td colspan="7">
-      <strong>Project-uitsplitsing:</strong>
-      ${renderProjBreakdown(name, weekRecs)}
-    </td></tr>`;
-  }).join('');
-}
-
-function renderProjBreakdown(name, weekRecs) {
-  const projMap = {};
-  weekRecs.filter(r=>r.medewerker===name).forEach(r => {
-    projMap[r.project] = (projMap[r.project]||0) + r.uren;
-  });
-  const sorted = Object.entries(projMap).sort((a,b)=>b[1]-a[1]);
-  return sorted.map(([p,u]) => `<div class="project-mini"><span>${escapeHtml(p)}</span><span class="hours">${u.toFixed(1)}u</span></div>`).join('');
-}
-
-function toggleDetail(name) {
-  const row = document.getElementById('detail-'+cssId(name));
-  if (!row) return;
-  row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
-}
-
-// ---------- Trend chart ----------
-function renderTrend() {
-  const periodSel = parseInt(document.getElementById('trendPeriod').value);
-  const allWeeks = getAvailableWeeks();
-  const weeks = periodSel > 0 ? allWeeks.slice(-periodSel) : allWeeks;
-
-  document.getElementById('trendSubtitle').textContent = periodSel > 0
-    ? `Uren per teamlid over de laatste ${weeks.length} weken (norm als stippellijn)`
-    : `Uren per teamlid over alle beschikbare weken (${weeks.length})`;
-
-  const teamleden = [...new Set(records.map(r => r.medewerker))].sort();
-  const palette = ['#1F4E78','#F59E0B','#10B981','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316','#3B82F6','#84CC16'];
-
-  // For each teamlid: hours per week
-  const datasets = [];
-  teamleden.forEach((name, idx) => {
-    const color = palette[idx % palette.length];
-    const hoursPerWeek = weeks.map(wk => {
-      const [y, w] = wk.split('-');
-      return records
-        .filter(r => r.medewerker === name && `${r.year}-${String(r.week).padStart(2,'0')}` === wk)
-        .reduce((s,r) => s + r.uren, 0);
-    });
-    datasets.push({
-      label: name,
-      data: hoursPerWeek,
-      borderColor: color,
-      backgroundColor: color + '20',
-      borderWidth: 2.5,
-      pointRadius: 3,
-      pointHoverRadius: 6,
-      tension: 0.3,
-      fill: false
-    });
-    // Add norm line (dashed) per teamlid
-    const norm = getNormFor(name);
-    datasets.push({
-      label: name + ' (norm ' + norm + 'u)',
-      data: weeks.map(() => norm),
-      borderColor: color,
-      borderDash: [4,4],
-      borderWidth: 1,
-      pointRadius: 0,
-      fill: false,
-      hidden: true // hidden by default, click legend to show
-    });
-  });
-
-  const weekLabels = weeks.map(w => {
-    const [y, wk] = w.split('-');
-    return `W${parseInt(wk)}`;
-  });
-
-  if (chartTrend) chartTrend.destroy();
-  chartTrend = new Chart(document.getElementById('chartTrend'), {
-    type: 'line',
-    data: { labels: weekLabels, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'nearest', intersect: false },
-      plugins: {
-        legend: { position: 'bottom', labels: { boxWidth: 14, font: {size: 12} } },
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}u` } }
-      },
-      scales: {
-        y: { beginAtZero: true, title: { display: true, text: 'Uren per week' } },
-        x: { title: { display: true, text: 'Week' } }
-      }
-    }
-  });
-
-  // Average per teamlid in this period
-  const trendKPIs = document.getElementById('trendKPIs');
-  const avgs = teamleden.map(name => {
-    const totals = weeks.map(wk => records
-      .filter(r => r.medewerker === name && `${r.year}-${String(r.week).padStart(2,'0')}` === wk)
-      .reduce((s,r) => s + r.uren, 0));
-    const activeWeeks = totals.filter(t => t > 0);
-    const avg = activeWeeks.length > 0 ? activeWeeks.reduce((a,b)=>a+b,0) / activeWeeks.length : 0;
-    const norm = getNormFor(name);
-    return { name, avg, norm, pct: norm > 0 ? Math.round(avg/norm*100) : 0 };
-  }).filter(x => x.avg > 0);
-
-  trendKPIs.innerHTML = avgs.map(a => {
-    let color = '#10B981';
-    if (a.pct < 90) color = '#F59E0B';
-    else if (a.pct > 110) color = '#EF4444';
-    return `<div style="display:flex;flex-direction:column;padding:8px 12px;background:var(--bg);border-radius:8px;border-left:3px solid ${color}">
-      <span style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600">${escapeHtml(a.name)}</span>
-      <span style="font-size:18px;font-weight:700;color:${color}">${a.avg.toFixed(1)}u / ${a.norm}u</span>
-      <span style="font-size:11px;color:var(--muted)">gem. per actieve week (${a.pct}%)</span>
-    </div>`;
-  }).join('');
-}
-
-// ---------- Grouping modal ----------
-function openGroupingModal() {
-  const list = document.getElementById('groupingList');
-  const sorted = Object.entries(projectGrouping).sort((a,b) => a[0].localeCompare(b[0]));
-  list.innerHTML = sorted.map(([canon, raws]) => `
-    <div class="group-item">
-      <div class="canonical">${escapeHtml(canon)} <span style="color:var(--muted);font-weight:400;font-size:12px">(${raws.length} variant${raws.length>1?'en':''})</span></div>
-      <div class="variants">
-        ${raws.map(r => `<div>• ${escapeHtml(r)}</div>`).join('')}
-      </div>
-    </div>
-  `).join('');
-  document.getElementById('groupingModal').classList.add('active');
-}
-function closeGroupingModal() {
-  document.getElementById('groupingModal').classList.remove('active');
-}
-
-// ---------- Utils ----------
-function escapeHtml(s) {
-  return String(s||'').replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-function escapeAttr(s){ return escapeHtml(s).replace(/'/g,"\\'"); }
-function cssId(s){ return String(s).replace(/[^a-zA-Z0-9]/g,'_'); }
-
-document.addEventListener('DOMContentLoaded', init);
-document.addEventListener('click', e => { if (e.target.id === 'groupingModal') closeGroupingModal(); });
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function escapeAttr(s){return escapeHtml(s).replace(/'/g,"\\'");}
+function cssId(s){return String(s).replace(/[^a-zA-Z0-9]/g,'_');}
+document.addEventListener('DOMContentLoaded',init);
+document.addEventListener('click',e=>{if(e.target.id==='groupingModal') closeGroupingModal();if(e.target.id==='debugModal') closeDebugModal();});
 </script>
 </body>
 </html>
