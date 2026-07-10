@@ -308,30 +308,59 @@ function loadRecordsLocal(){const raw=localStorage.getItem(STORAGE_KEY);records=
 function saveRecordsLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(records));}
 
 // ============ Fuzzy grouping ============
-function normalizeProjectName(raw){if(!raw) return '';let s=String(raw).toLowerCase();s=s.replace(/\b[a-z]?\d{3,}[a-z]?\b/gi,' ');s=s.replace(/[_\-\/\\]/g,' ');s=s.replace(/[^a-z\s]/g,' ');s=s.replace(/\s+/g,' ').trim();return s;}
+function isNAO(raw){
+  if(!raw) return false;
+  const s = String(raw).trim().toLowerCase();
+  return /^nao[\s_\-:]/.test(s) || s === 'nao';
+}
+  function normalizeProjectName(raw){if(!raw) return '';let s=String(raw).toLowerCase();s=s.replace(/\b[a-z]?\d{3,}[a-z]?\b/gi,' ');s=s.replace(/[_\-\/\\]/g,' ');s=s.replace(/[^a-z\s]/g,' ');s=s.replace(/\s+/g,' ').trim();return s;}
 function extractTokens(n){return n.split(/\s+/).filter(t=>t.length>3 && !STOPWORDS.has(t));}
 function buildProjectGrouping(rawNames){
-  const items=rawNames.map(raw=>({raw,tokens:extractTokens(normalizeProjectName(raw))}));
-  const clusters=[];
-  for(const item of items){
-    if(item.tokens.length===0){clusters.push({keyTokens:new Set([item.raw.toLowerCase()]),members:[item.raw]});continue;}
-    let bestIdx=-1,bestScore=0;
-    for(let i=0;i<clusters.length;i++){const shared=item.tokens.filter(t=>clusters[i].keyTokens.has(t)).length;if(shared>bestScore){bestScore=shared;bestIdx=i;}}
-    if(bestIdx>=0 && bestScore>=1){clusters[bestIdx].members.push(item.raw);item.tokens.forEach(t=>clusters[bestIdx].keyTokens.add(t));}
-    else{clusters.push({keyTokens:new Set(item.tokens),members:[item.raw]});}
-  }
-  const grouping={};
-  for(const cl of clusters){
-    const tokFreq={};
-    for(const m of cl.members){for(const t of extractTokens(normalizeProjectName(m))) tokFreq[t]=(tokFreq[t]||0)+1;}
-    let canonical;
-    const sorted=Object.entries(tokFreq).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
-    if(sorted.length===0) canonical=cl.members[0];
-    else{const universal=sorted.find(([t,c])=>c===cl.members.length);canonical=capitalize((universal?universal[0]:sorted[0][0]));}
-    let finalName=canonical, counter=2;
-    while(grouping[finalName] && !cl.members.every(m=>grouping[finalName].includes(m))){finalName=canonical+' ('+counter+')';counter++;}
-    grouping[finalName]=cl.members;
-  }
+  // Split into NAO (realisatie) and regular
+  const naoRaws = rawNames.filter(r => isNAO(r));
+  const regularRaws = rawNames.filter(r => !isNAO(r));
+  
+  const groupCluster = (raws, prefix) => {
+    const items = raws.map(raw => ({raw, tokens: extractTokens(normalizeProjectName(raw))}));
+    const clusters = [];
+    for(const item of items){
+      if(item.tokens.length === 0){clusters.push({keyTokens: new Set([item.raw.toLowerCase()]), members: [item.raw]}); continue;}
+      let bestIdx=-1, bestScore=0;
+      for(let i=0; i<clusters.length; i++){
+        const shared = item.tokens.filter(t => clusters[i].keyTokens.has(t)).length;
+        if(shared > bestScore){bestScore=shared; bestIdx=i;}
+      }
+      if(bestIdx >= 0 && bestScore >= 1){
+        clusters[bestIdx].members.push(item.raw);
+        item.tokens.forEach(t => clusters[bestIdx].keyTokens.add(t));
+      } else {
+        clusters.push({keyTokens: new Set(item.tokens), members: [item.raw]});
+      }
+    }
+    const out = {};
+    for(const cl of clusters){
+      const tokFreq = {};
+      for(const m of cl.members){for(const t of extractTokens(normalizeProjectName(m))) tokFreq[t]=(tokFreq[t]||0)+1;}
+      let canonical;
+      const sorted = Object.entries(tokFreq).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0]));
+      if(sorted.length === 0) canonical = cl.members[0];
+      else {
+        const universal = sorted.find(([t,c]) => c === cl.members.length);
+        canonical = capitalize(universal ? universal[0] : sorted[0][0]);
+      }
+      let finalName = prefix + canonical, counter = 2;
+      while(out[finalName] && !cl.members.every(m => out[finalName].includes(m))){
+        finalName = prefix + canonical + ' (' + counter + ')'; counter++;
+      }
+      out[finalName] = cl.members;
+    }
+    return out;
+  };
+  
+  const regularGrouping = groupCluster(regularRaws, '');
+  const naoGrouping = groupCluster(naoRaws, 'Realisatie ');
+  return {...regularGrouping, ...naoGrouping};
+}
   return grouping;
 }
 function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
