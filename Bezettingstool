@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<!-- Bezettingstool - actieve pagina in navigatiebalk -->
+<html lang="nl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bezetting – NuRijnland</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root{--primary:#1F4E78;--primary-light:#2E6DA4;--bg:#F4F6F9;--card:#FFFFFF;--text:#1F2937;--muted:#6B7280;--success:#10B981;--warning:#F59E0B;--danger:#EF4444;--info:#3B82F6;--border:#E5E7EB;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding:24px;min-height:100vh}
+  .container{max-width:1400px;margin:0 auto}
+
+  .topnav{position:sticky;top:0;background:#1F4E78;color:#fff;padding:12px 24px;box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:50;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:-24px -24px 24px -24px}
+  .topnav .brand{font-weight:700;font-size:16px;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+  .topnav .tabs{display:flex;gap:8px}
+  .topnav .tab{color:#fff;text-decoration:none;padding:8px 16px;border-radius:8px;font-weight:600;font-size:14px;transition:all .15s;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px}
+  .topnav .tab:hover{background:rgba(255,255,255,.15)}
+  .topnav .tab.active{background:#fff;color:#1F4E78;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+  @media (max-width:600px){.topnav{flex-direction:column;text-align:center}.topnav .brand{font-size:14px}.topnav .tab{padding:6px 12px;font-size:13px}}
+
+  header{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;padding:28px 32px;border-radius:14px;margin-bottom:24px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  header h1{font-size:28px;margin-bottom:6px}
+  header p{opacity:.9;font-size:15px}
+  .info-box{background:#EFF6FF;border-left:4px solid var(--info);border-radius:8px;padding:16px 20px;margin-bottom:20px;font-size:14px;color:#1E3A8A}
+  .info-box strong{display:block;margin-bottom:6px;color:#1E40AF}
+  .info-box code{background:#DBEAFE;padding:1px 6px;border-radius:4px;font-size:13px}
+  .grouping-box{background:#F0FDF4;border-left:4px solid var(--success);border-radius:8px;padding:14px 20px;margin-bottom:20px;font-size:14px;color:#065F46;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .grouping-box .btn-small{padding:6px 12px;font-size:12px;background:#fff;color:var(--success);border:1px solid var(--success);border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;margin-left:auto}
+  .upload-zone{background:var(--card);border:2px dashed var(--primary);border-radius:12px;padding:36px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px}
+  .upload-zone:hover,.upload-zone.dragover{background:#E0F2FE;border-color:var(--primary-light)}
+  .upload-zone .icon{font-size:42px;margin-bottom:10px}
+  .upload-zone h3{color:var(--primary);margin-bottom:6px;font-size:18px}
+  .upload-zone p{color:var(--muted);font-size:14px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+  .kpi{background:var(--card);padding:20px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.05);border-left:4px solid var(--primary)}
+  .kpi .label{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+  .kpi .value{font-size:32px;font-weight:700;color:var(--primary);margin-top:6px}
+  .kpi.warn{border-left-color:var(--warning)} .kpi.warn .value{color:var(--warning)}
+  .kpi.success{border-left-color:var(--success)} .kpi.success .value{color:var(--success)}
+  .kpi.danger{border-left-color:var(--danger)} .kpi.danger .value{color:var(--danger)}
+  .week-nav{background:var(--card);border-radius:12px;padding:14px 20px;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .week-nav .arrow{background:var(--primary);color:#fff;border:none;width:38px;height:38px;border-radius:50%;font-size:16px;cursor:pointer;font-weight:700}
+  .week-nav .arrow:disabled{background:#CBD5E1;cursor:not-allowed}
+  .week-nav .week-label{font-size:18px;font-weight:700;color:var(--primary);min-width:180px;text-align:center}
+  .week-nav select{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff;font-family:inherit;margin-left:auto}
+  .charts{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:24px}
+  @media (max-width:1000px){.charts{grid-template-columns:1fr}}
+  .card{background:var(--card);border-radius:12px;padding:20px;box-shadow:0 2px 6px rgba(0,0,0,.05);margin-bottom:20px}
+  .card h2{font-size:17px;color:var(--primary);margin-bottom:6px}
+  .card .subtitle{color:var(--muted);font-size:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--bg)}
+  .chart-wrap{position:relative;height:340px}
+  .chart-wrap.small{height:280px}
+  .chart-wrap.large{height:420px}
+  .card-header-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .card-header-row h2{margin-bottom:0}
+  .card-header-row select{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:#fff}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{background:var(--primary);color:#fff;padding:12px 10px;text-align:left;font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.3px}
+  td{padding:12px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tr.clickable{cursor:pointer}
+  tr.clickable:hover td{background:var(--bg)}
+  tr.detail-row td{background:#F9FAFB;padding:14px 20px}
+  .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  .badge-ok{background:#D1FAE5;color:#065F46}
+  .badge-under{background:#FEF3C7;color:#92400E}
+  .badge-over{background:#FEE2E2;color:#991B1B}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+  .btn{padding:10px 18px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-secondary{background:#fff;color:var(--primary);border:1px solid var(--border)}
+  .btn-danger{background:var(--danger);color:#fff}
+  .empty{text-align:center;padding:40px;color:var(--muted);background:var(--card);border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+  .config-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;font-size:13px}
+  .config-row input{width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit}
+  .footer{text-align:center;color:var(--muted);font-size:12px;margin-top:24px;padding:16px}
+  .project-mini{display:flex;justify-content:space-between;padding:6px 10px;background:#fff;border-radius:6px;margin:4px 0;font-size:13px}
+  .project-mini .hours{font-weight:600;color:var(--primary)}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+  .modal-overlay.active{display:flex}
+  .modal{background:#fff;border-radius:14px;padding:28px;max-width:800px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.2)}
+  .modal h2{color:var(--primary);margin-bottom:16px;font-size:20px}
+  .group-item{border-left:3px solid var(--primary);padding:10px 14px;margin-bottom:10px;background:#F9FAFB;border-radius:6px}
+  .group-item .canonical{font-weight:700;color:var(--primary);font-size:14px}
+  .group-item .variants{font-size:12px;color:var(--muted);margin-top:4px;padding-left:8px;border-left:2px solid var(--border);margin-left:4px}
+  .close-modal{background:var(--primary);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;margin-top:12px}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <div class="brand">🏗️ NuRijnland Team Tools</div>
+  <div class="tabs">
+    <a href="index.html" class="tab">👥 Team Dashboard</a>
+    <a href="bezetting.html" class="tab active">⏱️ Bezetting</a>
+  </div>
+</nav>
+
+<div class="container">
+<header>
+  <h1>⏱️ Bezetting</h1>
+  <p>Uren-registratie per teamlid per week · 12-weken trend en slimme projectgroepering</p>
+</header>
+<div class="info-box">
+  <strong>📋 Verwacht Excel-format</strong>
+  Herkenbare kolommen (case-insensitief): <code>Medewerker</code>, <code>Projectnaam</code>, <code>Week</code>, <code>Datum</code>, <code>Totaal</code>. De tool herkent en groepeert automatisch soortgelijke projectnamen.
+</div>
+<div class="upload-zone" id="uploadZone">
+  <div class="icon">📤</div>
+  <h3>Sleep hier je Excel-bestand of klik om te uploaden</h3>
+  <p>Ondersteund: .xlsx, .xls</p>
+  <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none"/>
+</div>
+<div class="toolbar">
+  <button class="btn btn-secondary" onclick="loadDemoData()">📥 Voorbeelddata laden</button>
+  <button class="btn btn-danger" onclick="clearData()">🗑️ Wis data</button>
+  <button class="btn btn-secondary" onclick="toggleNormConfig()">⚙️ Normuren instellen</button>
+</div>
+<div class="card" id="normConfig" style="display:none">
+  <h2>Normuren per teamlid (uren/week)</h2>
+  <div class="subtitle">Wijzig hieronder de contracturen per persoon.</div>
+  <div id="normRows"></div>
+  <div class="config-row" style="margin-top:10px">
+    <label style="font-weight:600">Standaard normuren:</label>
+    <input type="number" id="normDefault" min="0" max="60" step="1" onchange="saveNormConfig()"/>
+    <span style="color:var(--muted);font-size:12px">voor teamleden zonder eigen instelling</span>
+  </div>
+</div>
+<div id="groupingBanner" class="grouping-box" style="display:none">
+  <span>🔗</span>
+  <span id="groupingText">–</span>
+  <button class="btn-small" onclick="openGroupingModal()">Toon groepering</button>
+</div>
+<div id="mainContent" style="display:none">
+  <div class="kpis">
+    <div class="kpi"><div class="label">Aantal teamleden</div><div class="value" id="kpi-team">0</div></div>
+    <div class="kpi success"><div class="label">Totaal geboekte uren</div><div class="value" id="kpi-total">0</div></div>
+    <div class="kpi warn"><div class="label">Onderbezet</div><div class="value" id="kpi-under">0</div></div>
+    <div class="kpi danger"><div class="label">Overbezet</div><div class="value" id="kpi-over">0</div></div>
+  </div>
+  <div class="week-nav">
+    <button class="arrow" id="btnPrev" onclick="changeWeek(-1)">◀</button>
+    <div class="week-label" id="weekLabel">–</div>
+    <button class="arrow" id="btnNext" onclick="changeWeek(1)">▶</button>
+    <select id="weekSelect" onchange="jumpToWeek(this.value)"></select>
+  </div>
+  <div class="charts">
+    <div class="card" style="margin-bottom:0">
+      <h2>Bezetting per teamlid</h2>
+      <div class="subtitle" id="chartTeamSubtitle">–</div>
+      <div class="chart-wrap"><canvas id="chartTeam"></canvas></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <h2>Verdeling per project</h2>
+      <div class="subtitle" id="chartProjSubtitle">–</div>
+      <div class="chart-wrap small"><canvas id="chartProj"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Detail per teamlid</h2>
+    <div class="subtitle">Klik op een rij voor project-uitsplitsing</div>
+    <div style="overflow-x:auto">
+      <table id="detailTable">
+        <thead><tr><th>Teamlid</th><th>Normuren</th><th>Geboekt</th><th>Verschil</th><th>Bezetting %</th><th>Status</th><th>Projecten</th></tr></thead>
+        <tbody id="detailBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header-row">
+      <h2>📈 Trend bezetting</h2>
+      <div>
+        <label style="font-size:13px;color:var(--muted);margin-right:6px">Periode:</label>
+        <select id="trendPeriod" onchange="renderTrend()">
+          <option value="4">Laatste 4 weken</option>
+          <option value="8">Laatste 8 weken</option>
+          <option value="12" selected>Laatste 12 weken</option>
+          <option value="26">Laatste 26 weken</option>
+          <option value="0">Alle weken</option>
+        </select>
+      </div>
+    </div>
+    <div class="subtitle" id="trendSubtitle">–</div>
+    <div class="chart-wrap large"><canvas id="chartTrend"></canvas></div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:20px;flex-wrap:wrap;font-size:13px" id="trendKPIs"></div>
+  </div>
+  <div class="card">
+    <h2>Totale uren per project</h2>
+    <div class="subtitle" id="chartProjBarSubtitle">–</div>
+    <div class="chart-wrap"><canvas id="chartProjBar"></canvas></div>
+  </div>
+</div>
+<div id="emptyState" class="empty">
+  <p style="font-size:16px;margin-bottom:8px">📊 Nog geen data geladen</p>
+  <p>Upload een Excel-bestand of klik op "Voorbeelddata laden" om te testen.</p>
+</div>
+<div class="footer">💾 Gegevens worden lokaal in je browser opgeslagen (localStorage).</div>
+</div>
+<div class="modal-overlay" id="groupingModal">
+  <div class="modal">
+    <h2>🔗 Projectnaam-groepering</h2>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:14px">Ruwe projectnamen automatisch gegroepeerd. Hieronder zie je per canonieke naam de ruwe varianten.</div>
+    <div id="groupingList"></div>
+    <button class="close-modal" onclick="closeGroupingModal()">Sluiten</button>
+  </div>
+</div>
+<script>
+const STORAGE_KEY='bezettingTool_v2', NORM_KEY='bezettingTool_norm_v2';
+const DEFAULT_NORM={"Barry":36,"Mara":36,"Wouter Lindenbergh":32,"Wouter":32};
+const DEFAULT_NORM_FALLBACK=40;
+const STOPWORDS=new Set(['project','case','bto','ms','net','tgp','am','hl','en','de','het','een','van','haarlem','bloemendaal','overveen','aerdenhout','velsen','noord','zuid','oost','west','e','o','sr','jr','the','and','or']);
+let records=[], normConfig={}, normDefault=DEFAULT_NORM_FALLBACK, currentWeekKey=null;
+let chartTeam,chartProj,chartProjBar,chartTrend;
+let projectGrouping={};
+
+function normalizeProjectName(raw){if(!raw) return '';let s=String(raw).toLowerCase();s=s.replace(/\b[a-z]?\d{3,}[a-z]?\b/gi,' ');s=s.replace(/[_\-\/\\]/g,' ');s=s.replace(/[^a-z\s]/g,' ');s=s.replace(/\s+/g,' ').trim();return s;}
+function extractTokens(n){return n.split(/\s+/).filter(t=>t.length>3 && !STOPWORDS.has(t));}
+function buildProjectGrouping(rawNames){
+  const items=rawNames.map(raw=>({raw,tokens:extractTokens(normalizeProjectName(raw))}));
+  const clusters=[];
+  for(const item of items){
+    if(item.tokens.length===0){clusters.push({keyTokens:new Set([item.raw.toLowerCase()]),members:[item.raw]});continue;}
+    let bestIdx=-1,bestScore=0;
+    for(let i=0;i<clusters.length;i++){
+      const shared=item.tokens.filter(t=>clusters[i].keyTokens.has(t)).length;
+      if(shared>bestScore){bestScore=shared;bestIdx=i;}
+    }
+    if(bestIdx>=0 && bestScore>=1){clusters[bestIdx].members.push(item.raw);item.tokens.forEach(t=>clusters[bestIdx].keyTokens.add(t));}
+    else{clusters.push({keyTokens:new Set(item.tokens),members:[item.raw]});}
+  }
+  const grouping={};
+  for(const cl of clusters){
+    const tokFreq={};
+    for(const m of cl.members){for(const t of extractTokens(normalizeProjectName(m))) tokFreq[t]=(tokFreq[t]||0)+1;}
+    let canonical;
+    const sorted=Object.entries(tokFreq).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+    if(sorted.length===0) canonical=cl.members[0];
+    else{const universal=sorted.find(([t,c])=>c===cl.members.length);canonical=capitalize((universal?universal[0]:sorted[0][0]));}
+    let finalName=canonical, counter=2;
+    while(grouping[finalName] && !cl.members.every(m=>grouping[finalName].includes(m))){finalName=canonical+' ('+counter+')';counter++;}
+    grouping[finalName]=cl.members;
+  }
+  return grouping;
+}
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function buildRawToCanonical(g){const m={};for(const[c,r] of Object.entries(g))for(const x of r) m[x]=c;return m;}
+
+function init(){loadNormConfig();loadRecords();setupUpload();refreshUI();}
+function loadNormConfig(){const raw=localStorage.getItem(NORM_KEY);if(raw){const cfg=JSON.parse(raw);normConfig=cfg.perTeamlid||{...DEFAULT_NORM};normDefault=cfg.default||DEFAULT_NORM_FALLBACK;}else{normConfig={...DEFAULT_NORM};normDefault=DEFAULT_NORM_FALLBACK;}document.getElementById('normDefault').value=normDefault;}
+function saveNormConfig(){normDefault=parseFloat(document.getElementById('normDefault').value)||DEFAULT_NORM_FALLBACK;document.querySelectorAll('#normRows input').forEach(inp=>{const n=inp.dataset.name;const v=parseFloat(inp.value);if(n && !isNaN(v)) normConfig[n]=v;});localStorage.setItem(NORM_KEY,JSON.stringify({perTeamlid:normConfig,default:normDefault}));refreshUI();}
+function getNormFor(n){if(normConfig[n]!==undefined) return normConfig[n];const f=n.split(' ')[0];if(normConfig[f]!==undefined) return normConfig[f];return normDefault;}
+function loadRecords(){const raw=localStorage.getItem(STORAGE_KEY);records=raw?JSON.parse(raw):[];if(records.length>0) rebuildGrouping();}
+function saveRecords(){localStorage.setItem(STORAGE_KEY,JSON.stringify(records));}
+function clearData(){if(!confirm("Wis alle data?")) return;records=[];projectGrouping={};saveRecords();refreshUI();}
+function toggleNormConfig(){const el=document.getElementById('normConfig');el.style.display=el.style.display==='none'?'block':'none';renderNormConfig();}
+function renderNormConfig(){const tl=[...new Set(records.map(r=>r.medewerker))].sort();Object.keys(DEFAULT_NORM).forEach(n=>{if(!tl.includes(n)) tl.push(n);});const c=document.getElementById('normRows');if(tl.length===0){c.innerHTML='<div style="color:var(--muted);font-size:13px">Nog geen teamleden geladen.</div>';return;}c.innerHTML=tl.map(n=>{const v=normConfig[n]!==undefined?normConfig[n]:getNormFor(n);return `<div class="config-row"><label style="min-width:180px">${escapeHtml(n)}</label><input type="number" min="0" max="60" step="1" value="${v}" data-name="${escapeHtml(n)}" onchange="saveNormConfig()"/><span style="color:var(--muted);font-size:12px">uur/week</span></div>`;}).join('');}
+
+function setupUpload(){const z=document.getElementById('uploadZone'),i=document.getElementById('fileInput');z.addEventListener('click',()=>i.click());z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('dragover');});z.addEventListener('dragleave',()=>z.classList.remove('dragover'));z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('dragover');if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);});i.addEventListener('change',e=>{if(e.target.files.length) handleFile(e.target.files[0]);});}
+function handleFile(file){const r=new FileReader();r.onload=e=>{try{const d=new Uint8Array(e.target.result);const wb=XLSX.read(d,{type:'array',cellDates:true});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false,dateNF:'yyyy-mm-dd'});const p=parseRows(rows);if(p.length===0){alert("Geen bruikbare regels gevonden.");return;}if(records.length>0 && !confirm(`Bestaande data vervangen door ${p.length} regels?`)) return;records=p;rebuildGrouping();saveRecords();refreshUI();alert(`✅ ${p.length} regels geladen. ${Object.keys(projectGrouping).length} unieke projecten na groepering.`);}catch(err){alert("Fout: "+err.message);}};r.readAsArrayBuffer(file);}
+function parseRows(rows){const out=[];if(rows.length===0) return out;const keys=Object.keys(rows[0]);const find=p=>keys.find(k=>p.some(x=>k.toLowerCase().includes(x)));const kMed=find(['medewerker','naam','teamlid']),kProj=find(['projectnaam'])||find(['project']),kWeek=find(['week']),kDatum=find(['datum','date']),kUur=find(['totaal'])||find(['uren','uur','hours']);if(!kMed||!kUur) return out;
+  for(const r of rows){const med=String(r[kMed]||'').trim();const projRaw=kProj?String(r[kProj]||'').trim():'Onbekend';const uur=parseFloat(String(r[kUur]).replace(',','.'));if(!med||isNaN(uur)||uur<=0) continue;let week=kWeek?String(r[kWeek]||'').trim():'';let datum=kDatum?String(r[kDatum]||'').trim():'';datum=normalizeDate(datum);let year=null;if(datum){year=parseInt(datum.split('-')[0]);if(!week) week=getWeekNumber(datum);}if(!week) continue;week=parseInt(week);if(!year&&datum) year=new Date(datum).getFullYear();if(!year) year=new Date().getFullYear();out.push({medewerker:med,projectRaw:projRaw||'Onbekend',week,year,datum,uren:uur});}return out;}
+function rebuildGrouping(){const raws=[...new Set(records.map(r=>r.projectRaw))];projectGrouping=buildProjectGrouping(raws);const map=buildRawToCanonical(projectGrouping);records.forEach(r=>{r.project=map[r.projectRaw]||r.projectRaw;});}
+function normalizeDate(s){if(!s) return '';s=String(s).trim();if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);let m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);if(m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;const d=new Date(s);if(!isNaN(d)) return d.toISOString().slice(0,10);return '';}
+function getWeekNumber(ds){const d=new Date(ds);d.setHours(0,0,0,0);d.setDate(d.getDate()+4-(d.getDay()||7));const y=new Date(d.getFullYear(),0,1);return Math.ceil((((d-y)/86400000)+1)/7);}
+
+function loadDemoData(){
+  const raw={gildenlaan:"case 289900 TGP AM 37566A MS-Net Gildenlaan Velsen-Noord",wijkerstraatweg:"case 289084 TGP AM 37567A MS_Net Wijkerstraatweg Velsen-Noord",ramplaan:"Project: 37538_Ramplaankwartier Haarlem",dentexlaan:"Project: 37539_Den Texlaan Aerdenhout",zadelmakerstraat:"BTO_Zadelmakerstraat_0299312",muiderslotweg:"Case 289264_Muiderslotweg Haarlem HL",kleverlaan:"case 0288181 Kleverlaan Haarlem e.o.",hartelustlaan:"Project: 37524 Hartelustlaan Bloemendaal",bloemendaalseweg:"Project: 37536_Bloemendaalseweg Overveen",middenweg:"Project: 37599_Middenweg Ouderkerk a.d. Amstel",planetenlaan:"Case 289500_Planetenlaan Haarlem HL",oosteinde:"Project: 37610_Oosteinde Aalsmeer"};
+  const demo=[], tl=["Barry","Mara","Wouter Lindenbergh","Wesley","Jacob Polak","Stan","Lotfy"];
+  for(let w=16;w<=27;w++){
+    tl.forEach(m=>{
+      const nProj=2+Math.floor(Math.random()*3);
+      const keys=Object.keys(raw).sort(()=>Math.random()-0.5).slice(0,nProj);
+      let norm=40;if(m==="Barry"||m==="Mara") norm=36;if(m==="Wouter Lindenbergh") norm=32;
+      const target=norm+(Math.random()*8-4);let remaining=target;
+      keys.forEach((pk,i)=>{const share=i===keys.length-1?remaining:Math.round((remaining/(keys.length-i))*Math.random()*2);const hrs=Math.max(2,Math.round(share*2)/2);remaining-=hrs;const day=1+Math.floor(Math.random()*5);demo.push({medewerker:m,projectRaw:raw[pk],week:w,year:2026,datum:weekToDate(2026,w,day),uren:hrs});});
+    });
+  }
+  if(records.length>0 && !confirm(`Vervangen door ${demo.length} voorbeeldregels?`)) return;
+  records=demo;rebuildGrouping();saveRecords();refreshUI();
+}
+function weekToDate(y,w,d){const j4=new Date(y,0,4);const dd=(j4.getDay()||7)-1;const ws=new Date(j4);ws.setDate(j4.getDate()-dd+(w-1)*7+(d-1));return ws.toISOString().slice(0,10);}
+
+function refreshUI(){const empty=document.getElementById('emptyState'),main=document.getElementById('mainContent'),banner=document.getElementById('groupingBanner');
+  if(records.length===0){empty.style.display='block';main.style.display='none';banner.style.display='none';return;}
+  empty.style.display='none';main.style.display='block';
+  const rawCount=new Set(records.map(r=>r.projectRaw)).size;const canonCount=Object.keys(projectGrouping).length;
+  banner.style.display='flex';
+  document.getElementById('groupingText').innerHTML=`<strong>${rawCount}</strong> ruwe projectnaam-varianten automatisch gegroepeerd naar <strong>${canonCount}</strong> unieke projecten.`;
+  buildWeekSelect();
+  if(!currentWeekKey||!getAvailableWeeks().includes(currentWeekKey)){const wks=getAvailableWeeks();currentWeekKey=wks[wks.length-1];}
+  document.getElementById('weekSelect').value=currentWeekKey;
+  renderWeek();renderTrend();renderNormConfig();
+}
+function getAvailableWeeks(){return [...new Set(records.map(r=>`${r.year}-${String(r.week).padStart(2,'0')}`))].sort();}
+function buildWeekSelect(){const sel=document.getElementById('weekSelect');sel.innerHTML=getAvailableWeeks().map(w=>{const[y,wk]=w.split('-');return `<option value="${w}">Week ${parseInt(wk)} · ${y}</option>`;}).join('');}
+function changeWeek(dir){const wks=getAvailableWeeks(),idx=wks.indexOf(currentWeekKey);if(idx<0) return;const ni=idx+dir;if(ni<0||ni>=wks.length) return;currentWeekKey=wks[ni];document.getElementById('weekSelect').value=currentWeekKey;renderWeek();}
+function jumpToWeek(k){currentWeekKey=k;renderWeek();}
+function renderWeek(){const[year,wk]=currentWeekKey.split('-');document.getElementById('weekLabel').textContent=`Week ${parseInt(wk)} · ${year}`;const wks=getAvailableWeeks(),idx=wks.indexOf(currentWeekKey);document.getElementById('btnPrev').disabled=idx<=0;document.getElementById('btnNext').disabled=idx>=wks.length-1;
+  const wr=records.filter(r=>`${r.year}-${String(r.week).padStart(2,'0')}`===currentWeekKey);
+  const pT={},pP={};wr.forEach(r=>{pT[r.medewerker]=(pT[r.medewerker]||0)+r.uren;pP[r.project]=(pP[r.project]||0)+r.uren;});
+  const total=wr.reduce((s,r)=>s+r.uren,0);const names=Object.keys(pT);let u=0,o=0;
+  names.forEach(n=>{const nm=getNormFor(n),h=pT[n];if(h<nm-2) u++;else if(h>nm+2) o++;});
+  document.getElementById('kpi-team').textContent=names.length;
+  document.getElementById('kpi-total').textContent=total.toFixed(1)+'u';
+  document.getElementById('kpi-under').textContent=u;
+  document.getElementById('kpi-over').textContent=o;
+  const sub=`Week ${parseInt(wk)} · ${year} · ${wr.length} boekingen · ${total.toFixed(1)}u totaal`;
+  document.getElementById('chartTeamSubtitle').textContent=sub;
+  document.getElementById('chartProjSubtitle').textContent=sub;
+  document.getElementById('chartProjBarSubtitle').textContent=sub;
+  renderTeamChart(pT);renderProjChart(pP);renderProjBarChart(pP);renderDetailTable(pT,wr);
+}
+function renderTeamChart(pT){const names=Object.keys(pT).sort();const hours=names.map(n=>pT[n]);const norms=names.map(n=>getNormFor(n));const colors=names.map((n,i)=>{const nm=norms[i],h=hours[i];if(h<nm-2) return '#F59E0B';if(h>nm+2) return '#EF4444';return '#10B981';});const labels=names.map((n,i)=>`${n} (${Math.round(hours[i]/norms[i]*100)}%)`);
+  if(chartTeam) chartTeam.destroy();
+  chartTeam=new Chart(document.getElementById('chartTeam'),{type:'bar',data:{labels,datasets:[{label:'Geboekte uren',data:hours,backgroundColor:colors,borderRadius:6},{label:'Normuren',data:norms,type:'line',borderColor:'#1F4E78',borderWidth:2,borderDash:[6,4],pointRadius:5,pointBackgroundColor:'#1F4E78',fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,title:{display:true,text:'Uren'}}}}});
+}
+function renderProjChart(pP){const p=Object.keys(pP),v=p.map(x=>pP[x]);const pal=['#1F4E78','#2E6DA4','#4A90E2','#8B5CF6','#F59E0B','#10B981','#EF4444','#3B82F6','#EC4899','#14B8A6','#F97316','#84CC16'];if(chartProj) chartProj.destroy();chartProj=new Chart(document.getElementById('chartProj'),{type:'doughnut',data:{labels:p,datasets:[{data:v,backgroundColor:p.map((_,i)=>pal[i%pal.length])}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}});}
+function renderProjBarChart(pP){const s=Object.entries(pP).sort((a,b)=>b[1]-a[1]);const p=s.map(x=>x[0]),v=s.map(x=>x[1]);if(chartProjBar) chartProjBar.destroy();chartProjBar=new Chart(document.getElementById('chartProjBar'),{type:'bar',data:{labels:p,datasets:[{label:'Uren',data:v,backgroundColor:'#1F4E78',borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,title:{display:true,text:'Uren'}}}}});}
+function renderDetailTable(pT,wr){const body=document.getElementById('detailBody');const names=Object.keys(pT).sort();body.innerHTML=names.map(n=>{const nm=getNormFor(n),h=pT[n],diff=h-nm,pct=Math.round(h/nm*100);let bc='badge-ok',bl='Op schema';if(h<nm-2){bc='badge-under';bl='Onderbezet';}else if(h>nm+2){bc='badge-over';bl='Overbezet';}const pc=new Set(wr.filter(r=>r.medewerker===n).map(r=>r.project)).size;return `<tr class="clickable" onclick="toggleDetail('${escapeAttr(n)}')"><td><strong>${escapeHtml(n)}</strong></td><td>${nm}u</td><td><strong>${h.toFixed(1)}u</strong></td><td style="color:${diff<0?'#F59E0B':diff>0?'#EF4444':'#10B981'}">${diff>=0?'+':''}${diff.toFixed(1)}u</td><td>${pct}%</td><td><span class="badge ${bc}">${bl}</span></td><td>${pc}</td></tr><tr class="detail-row" id="detail-${cssId(n)}" style="display:none"><td colspan="7"><strong>Project-uitsplitsing:</strong>${renderProjBreakdown(n,wr)}</td></tr>`;}).join('');}
+function renderProjBreakdown(n,wr){const pm={};wr.filter(r=>r.medewerker===n).forEach(r=>{pm[r.project]=(pm[r.project]||0)+r.uren;});return Object.entries(pm).sort((a,b)=>b[1]-a[1]).map(([p,u])=>`<div class="project-mini"><span>${escapeHtml(p)}</span><span class="hours">${u.toFixed(1)}u</span></div>`).join('');}
+function toggleDetail(n){const r=document.getElementById('detail-'+cssId(n));if(!r) return;r.style.display=r.style.display==='none'?'table-row':'none';}
+function renderTrend(){const ps=parseInt(document.getElementById('trendPeriod').value);const all=getAvailableWeeks();const wks=ps>0?all.slice(-ps):all;document.getElementById('trendSubtitle').textContent=ps>0?`Uren per teamlid over de laatste ${wks.length} weken (norm als stippellijn, klik legenda om te tonen)`:`Uren per teamlid over alle beschikbare weken (${wks.length})`;
+  const tl=[...new Set(records.map(r=>r.medewerker))].sort();const pal=['#1F4E78','#F59E0B','#10B981','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316','#3B82F6','#84CC16'];const ds=[];
+  tl.forEach((n,i)=>{const c=pal[i%pal.length];const hpw=wks.map(w=>records.filter(r=>r.medewerker===n && `${r.year}-${String(r.week).padStart(2,'0')}`===w).reduce((s,r)=>s+r.uren,0));ds.push({label:n,data:hpw,borderColor:c,backgroundColor:c+'20',borderWidth:2.5,pointRadius:3,pointHoverRadius:6,tension:0.3,fill:false});const nm=getNormFor(n);ds.push({label:n+' (norm '+nm+'u)',data:wks.map(()=>nm),borderColor:c,borderDash:[4,4],borderWidth:1,pointRadius:0,fill:false,hidden:true});});
+  const wl=wks.map(w=>`W${parseInt(w.split('-')[1])}`);
+  if(chartTrend) chartTrend.destroy();
+  chartTrend=new Chart(document.getElementById('chartTrend'),{type:'line',data:{labels:wl,datasets:ds},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'nearest',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:14,font:{size:12}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}u`}}},scales:{y:{beginAtZero:true,title:{display:true,text:'Uren per week'}},x:{title:{display:true,text:'Week'}}}}});
+  const kpi=document.getElementById('trendKPIs');const avgs=tl.map(n=>{const totals=wks.map(w=>records.filter(r=>r.medewerker===n && `${r.year}-${String(r.week).padStart(2,'0')}`===w).reduce((s,r)=>s+r.uren,0));const aw=totals.filter(t=>t>0);const avg=aw.length>0?aw.reduce((a,b)=>a+b,0)/aw.length:0;const nm=getNormFor(n);return{name:n,avg,norm:nm,pct:nm>0?Math.round(avg/nm*100):0};}).filter(x=>x.avg>0);
+  kpi.innerHTML=avgs.map(a=>{let c='#10B981';if(a.pct<90) c='#F59E0B';else if(a.pct>110) c='#EF4444';return `<div style="display:flex;flex-direction:column;padding:8px 12px;background:var(--bg);border-radius:8px;border-left:3px solid ${c}"><span style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600">${escapeHtml(a.name)}</span><span style="font-size:18px;font-weight:700;color:${c}">${a.avg.toFixed(1)}u / ${a.norm}u</span><span style="font-size:11px;color:var(--muted)">gem. per actieve week (${a.pct}%)</span></div>`;}).join('');
+}
+function openGroupingModal(){const list=document.getElementById('groupingList');const s=Object.entries(projectGrouping).sort((a,b)=>a[0].localeCompare(b[0]));list.innerHTML=s.map(([c,r])=>`<div class="group-item"><div class="canonical">${escapeHtml(c)} <span style="color:var(--muted);font-weight:400;font-size:12px">(${r.length} variant${r.length>1?'en':''})</span></div><div class="variants">${r.map(x=>`<div>• ${escapeHtml(x)}</div>`).join('')}</div></div>`).join('');document.getElementById('groupingModal').classList.add('active');}
+function closeGroupingModal(){document.getElementById('groupingModal').classList.remove('active');}
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function escapeAttr(s){return escapeHtml(s).replace(/'/g,"\\'");}
+function cssId(s){return String(s).replace(/[^a-zA-Z0-9]/g,'_');}
+document.addEventListener('DOMContentLoaded',init);
+document.addEventListener('click',e=>{if(e.target.id==='groupingModal') closeGroupingModal();});
+</script>
+</body>
+</html>
