@@ -54,6 +54,12 @@
   .card-header-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
   .card-header-row h2{margin-bottom:0}
   .card-header-row select{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:#fff}
+  .highlight-hint{background:#EFF6FF;border-left:3px solid var(--info);padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:12px;color:#1E40AF;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .highlight-hint .active-highlight{font-weight:700;color:var(--primary)}
+  .btn-reset-highlight{background:var(--warning);color:#fff;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600}
+  .btn-reset-highlight:hover{opacity:.9}
+  .highlight-stats{margin-top:14px;padding:12px 16px;background:#F0FDF4;border-left:3px solid var(--success);border-radius:8px;font-size:13px;color:#065F46;display:flex;gap:20px;flex-wrap:wrap}
+  .highlight-stats strong{color:#065F46}
   table{width:100%;border-collapse:collapse;font-size:14px}
   th{background:var(--primary);color:#fff;padding:12px 10px;text-align:left;font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.3px}
   td{padding:12px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
@@ -87,7 +93,6 @@
   .group-item{border-left:3px solid var(--primary);padding:10px 14px;margin-bottom:10px;background:#F9FAFB;border-radius:6px}
   .group-item .canonical{font-weight:700;color:var(--primary);font-size:14px}
   .group-item .variants{font-size:12px;color:var(--muted);margin-top:4px;padding-left:8px;border-left:2px solid var(--border);margin-left:4px}
-  .group-item .variants div{margin:2px 0}
   .close-modal{background:var(--primary);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;margin-top:12px}
   .debug-stat{display:flex;justify-content:space-between;padding:8px 12px;background:#F9FAFB;border-radius:6px;margin-bottom:6px;font-size:13px}
   .debug-stat strong{color:var(--primary)}
@@ -108,11 +113,11 @@
   </nav>
 <header>
   <h1>⏱️ Bezetting</h1>
-  <p>Uren-registratie per teamlid per week · Auto-fallback Totaal, 12-weken trend, slimme projectgroepering</p>
+  <p>Uren-registratie per teamlid per week · Klik op een lijn om die uit te lichten</p>
 </header>
 <div class="info-box">
   <strong>📋 Zo werkt het</strong>
-  Uploads worden <strong>samengevoegd</strong> met bestaande data. Duplicaten worden automatisch overgeslagen. De tool herkent flexibel de kolommen <code>Medewerker</code>, <code>Projectnaam</code>, <code>Week</code>, <code>Datum</code> en <code>Totaal</code>. Als de <code>Totaal</code>-kolom leeg is worden de percentage-kolommen (100%, 135%, 150%, 200%) opgeteld.
+  Uploads worden <strong>samengevoegd</strong> met bestaande data. Duplicaten worden automatisch overgeslagen. De tool herkent flexibel de kolommen <code>Medewerker</code>, <code>Projectnaam</code>, <code>Week</code>, <code>Datum</code> en <code>Totaal</code>. Als <code>Totaal</code> leeg is worden de percentage-kolommen (100%, 135%, 150%, 200%) opgeteld.
 </div>
 <div id="storageInfo" class="storage-info" style="display:none"></div>
 <div class="upload-zone" id="uploadZone">
@@ -186,7 +191,7 @@
   <div class="card">
     <div class="card-header-row">
       <h2>📈 Trend bezetting</h2>
-      <div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <label style="font-size:13px;color:var(--muted);margin-right:6px">Periode:</label>
         <select id="trendPeriod" onchange="renderTrend()">
           <option value="4">Laatste 4 weken</option>
@@ -195,10 +200,16 @@
           <option value="26">Laatste 26 weken</option>
           <option value="0">Alle weken</option>
         </select>
+        <button class="btn-reset-highlight" id="btnResetHighlight" onclick="resetHighlight()" style="display:none">🔄 Reset uitlichting</button>
       </div>
+    </div>
+    <div class="highlight-hint" id="highlightHint">
+      <span>💡 <strong>Tip:</strong> Klik op een lijn in de grafiek óf op een naam in de legenda om die uit te lichten. Klik nogmaals om te wisselen of op leeg gebied om te resetten.</span>
+      <span id="highlightHintActive"></span>
     </div>
     <div class="subtitle" id="trendSubtitle">–</div>
     <div class="chart-wrap large"><canvas id="chartTrend"></canvas></div>
+    <div id="highlightStats" class="highlight-stats" style="display:none"></div>
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:20px;flex-wrap:wrap;font-size:13px" id="trendKPIs"></div>
   </div>
   <div class="card">
@@ -240,6 +251,7 @@ let records=[], normConfig={}, normDefault=DEFAULT_NORM_FALLBACK, currentWeekKey
 let chartTeam,chartProj,chartProjBar,chartTrend;
 let projectGrouping={};
 let lastImportDebug=null;
+let highlightedTeamlid=null;   // NEW: name of the highlighted teamlid, null = none
 
 function normalizeProjectName(raw){if(!raw) return '';let s=String(raw).toLowerCase();s=s.replace(/\b[a-z]?\d{3,}[a-z]?\b/gi,' ');s=s.replace(/[_\-\/\\]/g,' ');s=s.replace(/[^a-z\s]/g,' ');s=s.replace(/\s+/g,' ').trim();return s;}
 function extractTokens(n){return n.split(/\s+/).filter(t=>t.length>3 && !STOPWORDS.has(t));}
@@ -364,93 +376,53 @@ function handleFile(file){
 
 function parseRows(rows){
   const out=[];
-  const debug={
-    totalRows: rows.length,
-    parsed: 0,
-    skipped: {},
-    columnsDetected: {},
-    columnsAll: [],
-    uniqueTeamleden: {},
-    sampleRows: rows.slice(0,3),
-    warnings: []
-  };
+  const debug={totalRows: rows.length,parsed: 0,skipped: {},columnsDetected: {},columnsAll: [],uniqueTeamleden: {},sampleRows: rows.slice(0,3),warnings: []};
   if(rows.length===0) return {parsed:out, debug};
-
   const keys=Object.keys(rows[0]);
   debug.columnsAll=keys;
   const find=p=>keys.find(k=>p.some(x=>k.toLowerCase().includes(x)));
-
   const kMed=find(['medewerker','naam','teamlid','consultant','persoon','gebruiker','employee','resource']);
   const kProj=find(['projectnaam'])||find(['project']);
   const kWeek=find(['week']);
   const kDatum=find(['datum','date']);
   const kUur=find(['totaal'])||find(['uren','uur','hours']);
-
-  // Percentage columns as fallback for Totaal
   const kPct100=keys.find(k=>k.includes('100'));
   const kPct135=keys.find(k=>k.includes('135'));
   const kPct150=keys.find(k=>k.includes('150'));
   const kPct200=keys.find(k=>k.includes('200'));
-
   debug.columnsDetected={
-    Medewerker: kMed||'❌ niet gevonden',
-    Projectnaam: kProj||'❌ niet gevonden',
-    Week: kWeek||'⚠️ niet gevonden (wordt uit datum berekend)',
-    Datum: kDatum||'⚠️ niet gevonden',
+    Medewerker: kMed||'❌ niet gevonden', Projectnaam: kProj||'❌ niet gevonden',
+    Week: kWeek||'⚠️ niet gevonden (uit datum berekend)', Datum: kDatum||'⚠️ niet gevonden',
     Totaal: kUur||'⚠️ niet gevonden (fallback: som van percentages)',
-    'Pct 100%': kPct100||'-',
-    'Pct 135%': kPct135||'-',
-    'Pct 150%': kPct150||'-',
-    'Pct 200%': kPct200||'-'
+    'Pct 100%': kPct100||'-','Pct 135%': kPct135||'-','Pct 150%': kPct150||'-','Pct 200%': kPct200||'-'
   };
-
-  if(!kMed){debug.warnings.push("Kolom 'Medewerker' niet gevonden - kan geen regels verwerken.");return {parsed:out, debug};}
-
+  if(!kMed){debug.warnings.push("Kolom 'Medewerker' niet gevonden.");return {parsed:out, debug};}
   const skip=(reason)=>{debug.skipped[reason]=(debug.skipped[reason]||0)+1;};
-
   for(const r of rows){
     const med=String(r[kMed]||'').trim();
     if(!med){skip('leeg medewerker');continue;}
-
     const projRaw=kProj?String(r[kProj]||'').trim():'Onbekend';
-
-    // Compute uren: prefer Totaal, fallback to sum of percentages
     let uur=0;
-    if(kUur){
-      uur=parseFloat(String(r[kUur]).replace(',','.'));
-      if(isNaN(uur)) uur=0;
-    }
+    if(kUur){uur=parseFloat(String(r[kUur]).replace(',','.'));if(isNaN(uur)) uur=0;}
     if(uur<=0){
-      // Fallback: sum percentage columns
       const p100=kPct100?parseFloat(String(r[kPct100]||0).replace(',','.'))||0:0;
       const p135=kPct135?parseFloat(String(r[kPct135]||0).replace(',','.'))||0:0;
       const p150=kPct150?parseFloat(String(r[kPct150]||0).replace(',','.'))||0:0;
       const p200=kPct200?parseFloat(String(r[kPct200]||0).replace(',','.'))||0:0;
       uur=p100+p135+p150+p200;
     }
-    if(!uur || uur<=0){skip('geen uren (Totaal en percentages leeg)');continue;}
-
+    if(!uur || uur<=0){skip('geen uren');continue;}
     let weekRaw=kWeek?String(r[kWeek]||'').trim():'';
     let datumRaw=kDatum?String(r[kDatum]||'').trim():'';
-
     const weekHint=weekRaw?parseInt(weekRaw):null;
     const datum=normalizeDate(datumRaw, weekHint);
-
     let year=null, week=null;
-    if(datum){
-      year=parseInt(datum.split('-')[0]);
-      week=weekHint || getWeekNumber(datum);
-    } else if(weekHint){
-      week=weekHint;
-      year=new Date().getFullYear();
-    }
-
+    if(datum){year=parseInt(datum.split('-')[0]);week=weekHint || getWeekNumber(datum);}
+    else if(weekHint){week=weekHint;year=new Date().getFullYear();}
     if(!week){skip('geen week/datum');continue;}
-
     out.push({medewerker:med, projectRaw:projRaw||'Onbekend', week:parseInt(week), year:year||new Date().getFullYear(), datum:datum||'', uren:uur});
     debug.uniqueTeamleden[med]=(debug.uniqueTeamleden[med]||0)+1;
   }
-
   debug.parsed=out.length;
   return {parsed:out, debug};
 }
@@ -460,17 +432,12 @@ function rebuildGrouping(){const raws=[...new Set(records.map(r=>r.projectRaw))]
 function normalizeDate(s, weekHint){
   if(!s) return '';
   s=String(s).trim();
-  // ISO already
   if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
-  // Match DD-MM-YYYY or DD/MM/YYYY or MM/DD/YYYY
   const m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
   if(m){
     const a=parseInt(m[1]), b=parseInt(m[2]), y=parseInt(m[3]);
-    // If first > 12, definitely DD/MM
-    if(a>12){return `${y}-${String(b).padStart(2,'0')}-${String(a).padStart(2,'0')}`;}
-    // If second > 12, definitely MM/DD (US)
-    if(b>12){return `${y}-${String(a).padStart(2,'0')}-${String(b).padStart(2,'0')}`;}
-    // Ambiguous - try to match with week hint
+    if(a>12) return `${y}-${String(b).padStart(2,'0')}-${String(a).padStart(2,'0')}`;
+    if(b>12) return `${y}-${String(a).padStart(2,'0')}-${String(b).padStart(2,'0')}`;
     if(weekHint){
       const tryDDMM=`${y}-${String(b).padStart(2,'0')}-${String(a).padStart(2,'0')}`;
       const tryMMDD=`${y}-${String(a).padStart(2,'0')}-${String(b).padStart(2,'0')}`;
@@ -479,10 +446,8 @@ function normalizeDate(s, weekHint){
       if(wDDMM===weekHint && wMMDD!==weekHint) return tryDDMM;
       if(wMMDD===weekHint && wDDMM!==weekHint) return tryMMDD;
     }
-    // Default to European DD/MM
     return `${y}-${String(b).padStart(2,'0')}-${String(a).padStart(2,'0')}`;
   }
-  // Try native Date parse
   const d=new Date(s);
   if(!isNaN(d)) return d.toISOString().slice(0,10);
   return '';
@@ -562,74 +527,221 @@ function renderDetailTable(pT,wr){const body=document.getElementById('detailBody
 function renderProjBreakdown(n,wr){const pm={};wr.filter(r=>r.medewerker===n).forEach(r=>{pm[r.project]=(pm[r.project]||0)+r.uren;});return Object.entries(pm).sort((a,b)=>b[1]-a[1]).map(([p,u])=>`<div class="project-mini"><span>${escapeHtml(p)}</span><span class="hours">${u.toFixed(1)}u</span></div>`).join('');}
 function toggleDetail(n){const r=document.getElementById('detail-'+cssId(n));if(!r) return;r.style.display=r.style.display==='none'?'table-row':'none';}
 
-function renderTrend(){const ps=parseInt(document.getElementById('trendPeriod').value);const all=getAvailableWeeks();const wks=ps>0?all.slice(-ps):all;document.getElementById('trendSubtitle').textContent=ps>0?`Uren per teamlid over de laatste ${wks.length} weken`:`Uren per teamlid over alle beschikbare weken (${wks.length})`;
-  const tl=[...new Set(records.map(r=>r.medewerker))].sort();const pal=['#1F4E78','#F59E0B','#10B981','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316','#3B82F6','#84CC16'];const ds=[];
-  tl.forEach((n,i)=>{const c=pal[i%pal.length];const hpw=wks.map(w=>records.filter(r=>r.medewerker===n && `${r.year}-${String(r.week).padStart(2,'0')}`===w).reduce((s,r)=>s+r.uren,0));ds.push({label:n,data:hpw,borderColor:c,backgroundColor:c+'20',borderWidth:2.5,pointRadius:3,pointHoverRadius:6,tension:0.3,fill:false});const nm=getNormFor(n);ds.push({label:n+' (norm '+nm+'u)',data:wks.map(()=>nm),borderColor:c,borderDash:[4,4],borderWidth:1,pointRadius:0,fill:false,hidden:true});});
+// ============ HIGHLIGHT logic ============
+function resetHighlight(){highlightedTeamlid=null;renderTrend();}
+
+function hexToRgba(hex, alpha){
+  // Accept #RRGGBB
+  const h = hex.replace('#','');
+  const r = parseInt(h.substr(0,2),16);
+  const g = parseInt(h.substr(2,2),16);
+  const b = parseInt(h.substr(4,2),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function renderTrend(){
+  const ps=parseInt(document.getElementById('trendPeriod').value);
+  const all=getAvailableWeeks();
+  const wks=ps>0?all.slice(-ps):all;
+  document.getElementById('trendSubtitle').textContent=ps>0?`Uren per teamlid over de laatste ${wks.length} weken`:`Uren per teamlid over alle beschikbare weken (${wks.length})`;
+
+  const tl=[...new Set(records.map(r=>r.medewerker))].sort();
+  const pal=['#1F4E78','#F59E0B','#10B981','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316','#3B82F6','#84CC16'];
+  const ds=[];
+  // Store mapping datasetIndex -> teamlid name & type
+  const datasetMeta=[];
+
+  tl.forEach((n,i)=>{
+    const c=pal[i%pal.length];
+    const hpw=wks.map(w=>records.filter(r=>r.medewerker===n && `${r.year}-${String(r.week).padStart(2,'0')}`===w).reduce((s,r)=>s+r.uren,0));
+    const isHighlighted = highlightedTeamlid === n;
+    const isDimmed = highlightedTeamlid && highlightedTeamlid !== n;
+
+    let borderColor = c;
+    let borderWidth = 2.5;
+    let pointRadius = 3;
+    let bgColor = c + '20';
+
+    if(isHighlighted){
+      borderWidth = 4;
+      pointRadius = 5;
+      bgColor = hexToRgba(c, 0.15);
+    } else if(isDimmed){
+      borderColor = hexToRgba(c, 0.15);
+      borderWidth = 1.5;
+      pointRadius = 0;
+      bgColor = 'transparent';
+    }
+
+    ds.push({
+      label:n, data:hpw, borderColor, backgroundColor:bgColor,
+      borderWidth, pointRadius, pointHoverRadius:6, tension:0.3,
+      fill: isHighlighted, order: isHighlighted ? 0 : 1,
+      _teamlid: n, _isTeamLine: true
+    });
+    datasetMeta.push({teamlid: n, isTeamLine: true});
+
+    // Norm reference line (hidden by default unless explicitly enabled)
+    const nm=getNormFor(n);
+    ds.push({
+      label:n+' (norm '+nm+'u)', data:wks.map(()=>nm),
+      borderColor: isDimmed ? hexToRgba(c, 0.1) : c,
+      borderDash:[4,4], borderWidth:1, pointRadius:0, fill:false,
+      hidden:true, _teamlid: n, _isTeamLine: false
+    });
+    datasetMeta.push({teamlid: n, isTeamLine: false});
+  });
+
   const wl=wks.map(w=>`W${parseInt(w.split('-')[1])}`);
+
   if(chartTrend) chartTrend.destroy();
-  chartTrend=new Chart(document.getElementById('chartTrend'),{type:'line',data:{labels:wl,datasets:ds},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'nearest',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:14,font:{size:12}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}u`}}},scales:{y:{beginAtZero:true,title:{display:true,text:'Uren per week'}},x:{title:{display:true,text:'Week'}}}}});
-  const kpi=document.getElementById('trendKPIs');const avgs=tl.map(n=>{const totals=wks.map(w=>records.filter(r=>r.medewerker===n && `${r.year}-${String(r.week).padStart(2,'0')}`===w).reduce((s,r)=>s+r.uren,0));const aw=totals.filter(t=>t>0);const avg=aw.length>0?aw.reduce((a,b)=>a+b,0)/aw.length:0;const nm=getNormFor(n);return{name:n,avg,norm:nm,pct:nm>0?Math.round(avg/nm*100):0};}).filter(x=>x.avg>0);
-  kpi.innerHTML=avgs.map(a=>{let c='#10B981';if(a.pct<90) c='#F59E0B';else if(a.pct>110) c='#EF4444';return `<div style="display:flex;flex-direction:column;padding:8px 12px;background:var(--bg);border-radius:8px;border-left:3px solid ${c}"><span style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600">${escapeHtml(a.name)}</span><span style="font-size:18px;font-weight:700;color:${c}">${a.avg.toFixed(1)}u / ${a.norm}u</span><span style="font-size:11px;color:var(--muted)">gem. per actieve week (${a.pct}%)</span></div>`;}).join('');
+  chartTrend=new Chart(document.getElementById('chartTrend'),{
+    type:'line',
+    data:{labels:wl,datasets:ds},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'nearest',intersect:false},
+      onClick: (evt, elements, chart) => {
+        // If click hit a dataset element, use that; otherwise clear highlight
+        if(elements && elements.length > 0){
+          const el = elements[0];
+          const meta = datasetMeta[el.datasetIndex];
+          if(meta && meta.isTeamLine){
+            toggleHighlight(meta.teamlid);
+            return;
+          }
+        }
+        // Try clicking near a line even without exact point
+        const points = chart.getElementsAtEventForMode(evt, 'nearest', {intersect:false}, true);
+        if(points.length > 0){
+          const meta = datasetMeta[points[0].datasetIndex];
+          if(meta && meta.isTeamLine){
+            toggleHighlight(meta.teamlid);
+            return;
+          }
+        }
+        // Empty area clicked -> clear
+        if(highlightedTeamlid){ resetHighlight(); }
+      },
+      plugins:{
+        legend:{
+          position:'bottom',
+          labels:{boxWidth:14, font:{size:12},
+            filter: (legendItem, chartData) => {
+              // Only show team lines in the main legend, not norm lines
+              const dsIdx = legendItem.datasetIndex;
+              return chartData.datasets[dsIdx]._isTeamLine;
+            }
+          },
+          onClick: (e, legendItem, legend) => {
+            const dsIdx = legendItem.datasetIndex;
+            const meta = datasetMeta[dsIdx];
+            if(meta && meta.isTeamLine){
+              toggleHighlight(meta.teamlid);
+            }
+          }
+        },
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}u`}}
+      },
+      scales:{y:{beginAtZero:true,title:{display:true,text:'Uren per week'}},x:{title:{display:true,text:'Week'}}}
+    }
+  });
+
+  // Update highlight-related UI elements
+  updateHighlightUI(wks);
+
+  // Bottom stats KPIs
+  const kpi=document.getElementById('trendKPIs');
+  const avgs=tl.map(n=>{
+    const totals=wks.map(w=>records.filter(r=>r.medewerker===n && `${r.year}-${String(r.week).padStart(2,'0')}`===w).reduce((s,r)=>s+r.uren,0));
+    const aw=totals.filter(t=>t>0);
+    const avg=aw.length>0?aw.reduce((a,b)=>a+b,0)/aw.length:0;
+    const nm=getNormFor(n);
+    return{name:n,avg,norm:nm,pct:nm>0?Math.round(avg/nm*100):0};
+  }).filter(x=>x.avg>0);
+  kpi.innerHTML=avgs.map(a=>{
+    let c='#10B981';if(a.pct<90) c='#F59E0B';else if(a.pct>110) c='#EF4444';
+    const isHighlighted = highlightedTeamlid === a.name;
+    const border = isHighlighted ? '3px solid ' + c : '3px solid ' + c;
+    const bg = isHighlighted ? '#FEF3C7' : 'var(--bg)';
+    return `<div style="display:flex;flex-direction:column;padding:8px 12px;background:${bg};border-radius:8px;border-left:${border};cursor:pointer" onclick="toggleHighlight('${escapeAttr(a.name)}')">
+      <span style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600">${escapeHtml(a.name)}${isHighlighted?' ⭐':''}</span>
+      <span style="font-size:18px;font-weight:700;color:${c}">${a.avg.toFixed(1)}u / ${a.norm}u</span>
+      <span style="font-size:11px;color:var(--muted)">gem. per actieve week (${a.pct}%)</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleHighlight(name){
+  if(highlightedTeamlid === name){
+    highlightedTeamlid = null;
+  } else {
+    highlightedTeamlid = name;
+  }
+  renderTrend();
+}
+
+function updateHighlightUI(wks){
+  const btn = document.getElementById('btnResetHighlight');
+  const hintActive = document.getElementById('highlightHintActive');
+  const statsBlock = document.getElementById('highlightStats');
+  if(highlightedTeamlid){
+    btn.style.display = 'inline-block';
+    hintActive.innerHTML = `<span class="active-highlight">⭐ Uitgelicht: ${escapeHtml(highlightedTeamlid)}</span>`;
+
+    // Compute stats for highlighted teamlid in the visible period
+    const hpw = wks.map(w => records.filter(r => r.medewerker === highlightedTeamlid && `${r.year}-${String(r.week).padStart(2,'0')}`===w).reduce((s,r)=>s+r.uren,0));
+    const nonZero = hpw.filter(v => v > 0);
+    const norm = getNormFor(highlightedTeamlid);
+    const totalHours = hpw.reduce((a,b)=>a+b, 0);
+    const avg = nonZero.length > 0 ? totalHours / nonZero.length : 0;
+    const min = nonZero.length > 0 ? Math.min(...nonZero) : 0;
+    const max = nonZero.length > 0 ? Math.max(...nonZero) : 0;
+    const activeWeeks = nonZero.length;
+    const pct = norm > 0 ? Math.round(avg / norm * 100) : 0;
+
+    statsBlock.style.display = 'flex';
+    statsBlock.innerHTML = `
+      <div>⭐ <strong>${escapeHtml(highlightedTeamlid)}</strong> (norm ${norm}u/week)</div>
+      <div>📊 Actieve weken: <strong>${activeWeeks}/${wks.length}</strong></div>
+      <div>💼 Totaal: <strong>${totalHours.toFixed(1)}u</strong></div>
+      <div>📉 Min: <strong>${min.toFixed(1)}u</strong></div>
+      <div>📈 Max: <strong>${max.toFixed(1)}u</strong></div>
+      <div>📏 Gemiddeld: <strong>${avg.toFixed(1)}u</strong> (${pct}%)</div>
+    `;
+  } else {
+    btn.style.display = 'none';
+    hintActive.innerHTML = '';
+    statsBlock.style.display = 'none';
+    statsBlock.innerHTML = '';
+  }
 }
 
 function openGroupingModal(){const list=document.getElementById('groupingList');const s=Object.entries(projectGrouping).sort((a,b)=>a[0].localeCompare(b[0]));list.innerHTML=s.map(([c,r])=>`<div class="group-item"><div class="canonical">${escapeHtml(c)} <span style="color:var(--muted);font-weight:400;font-size:12px">(${r.length} variant${r.length>1?'en':''})</span></div><div class="variants">${r.map(x=>`<div>• ${escapeHtml(x)}</div>`).join('')}</div></div>`).join('');document.getElementById('groupingModal').classList.add('active');}
 function closeGroupingModal(){document.getElementById('groupingModal').classList.remove('active');}
 
-function openDebugModal(){
-  if(!lastImportDebug){alert("Nog geen import uitgevoerd in deze sessie.");return;}
-  showDebugModal();
-}
+function openDebugModal(){if(!lastImportDebug){alert("Nog geen import uitgevoerd in deze sessie.");return;}showDebugModal();}
 function closeDebugModal(){document.getElementById('debugModal').classList.remove('active');}
-
 function showDebugModal(){
   if(!lastImportDebug) return;
   const d=lastImportDebug;
   const totalSkipped=Object.values(d.skipped).reduce((a,b)=>a+b,0);
   const successPct=d.totalRows>0?Math.round(d.parsed/d.totalRows*100):0;
   const statusCls=successPct>=95?'debug-good':(successPct>=70?'debug-warn':'debug-bad');
-
   let html=`<div class="debug-stat"><span>📄 Totaal rijen in Excel:</span><strong>${d.totalRows}</strong></div>`;
   html+=`<div class="debug-stat"><span>✅ Succesvol ingelezen:</span><strong class="${statusCls}">${d.parsed} (${successPct}%)</strong></div>`;
   html+=`<div class="debug-stat"><span>⚠️ Overgeslagen:</span><strong>${totalSkipped}</strong></div>`;
-
-  if(d.merged){
-    html+=`<div class="debug-stat"><span>🔗 Toegevoegd na dedup:</span><strong class="debug-good">${d.merged.added}</strong></div>`;
-    html+=`<div class="debug-stat"><span>🔁 Duplicaten overgeslagen:</span><strong>${d.merged.skippedAsDuplicate}</strong></div>`;
-    html+=`<div class="debug-stat"><span>📊 Totaal na merge:</span><strong>${d.merged.totalNow}</strong></div>`;
-  }
-  if(d.replaced){
-    html+=`<div class="debug-stat"><span>♻️ Data vervangen · backup:</span><strong>${d.replaced.backup}</strong></div>`;
-  }
-
-  if(totalSkipped>0){
-    html+=`<h3>⚠️ Redenen voor overslaan</h3>`;
-    for(const [reason,count] of Object.entries(d.skipped)){
-      html+=`<div class="debug-stat"><span>${escapeHtml(reason)}:</span><strong>${count}</strong></div>`;
-    }
-  }
-
+  if(d.merged){html+=`<div class="debug-stat"><span>🔗 Toegevoegd na dedup:</span><strong class="debug-good">${d.merged.added}</strong></div>`;html+=`<div class="debug-stat"><span>🔁 Duplicaten overgeslagen:</span><strong>${d.merged.skippedAsDuplicate}</strong></div>`;html+=`<div class="debug-stat"><span>📊 Totaal na merge:</span><strong>${d.merged.totalNow}</strong></div>`;}
+  if(d.replaced){html+=`<div class="debug-stat"><span>♻️ Data vervangen · backup:</span><strong>${d.replaced.backup}</strong></div>`;}
+  if(totalSkipped>0){html+=`<h3>⚠️ Redenen voor overslaan</h3>`;for(const [reason,count] of Object.entries(d.skipped)) html+=`<div class="debug-stat"><span>${escapeHtml(reason)}:</span><strong>${count}</strong></div>`;}
   html+=`<h3>🔍 Herkende kolommen</h3>`;
-  for(const [key,val] of Object.entries(d.columnsDetected)){
-    html+=`<div class="debug-stat"><span>${escapeHtml(key)}:</span><strong>${escapeHtml(String(val))}</strong></div>`;
-  }
-
+  for(const [key,val] of Object.entries(d.columnsDetected)) html+=`<div class="debug-stat"><span>${escapeHtml(key)}:</span><strong>${escapeHtml(String(val))}</strong></div>`;
   html+=`<h3>👥 Unieke teamleden gevonden (${Object.keys(d.uniqueTeamleden).length})</h3>`;
   const sortedTeam=Object.entries(d.uniqueTeamleden).sort((a,b)=>b[1]-a[1]);
-  for(const [name,count] of sortedTeam){
-    html+=`<div class="debug-stat"><span>${escapeHtml(name)}</span><strong>${count} regel(s)</strong></div>`;
-  }
-
-  if(d.warnings.length>0){
-    html+=`<h3>❗ Waarschuwingen</h3>`;
-    for(const w of d.warnings) html+=`<div class="debug-stat"><span class="debug-bad">${escapeHtml(w)}</span></div>`;
-  }
-
-  html+=`<h3>📋 Alle kolommen in Excel (${d.columnsAll.length})</h3>`;
-  html+=`<div class="debug-code">${escapeHtml(d.columnsAll.join(' · '))}</div>`;
-
-  html+=`<h3>📄 Eerste 3 rijen (voor inspectie)</h3>`;
-  html+=`<div class="debug-code">${escapeHtml(JSON.stringify(d.sampleRows, null, 2))}</div>`;
-
+  for(const [name,count] of sortedTeam) html+=`<div class="debug-stat"><span>${escapeHtml(name)}</span><strong>${count} regel(s)</strong></div>`;
+  if(d.warnings.length>0){html+=`<h3>❗ Waarschuwingen</h3>`;for(const w of d.warnings) html+=`<div class="debug-stat"><span class="debug-bad">${escapeHtml(w)}</span></div>`;}
+  html+=`<h3>📋 Alle kolommen in Excel (${d.columnsAll.length})</h3><div class="debug-code">${escapeHtml(d.columnsAll.join(' · '))}</div>`;
+  html+=`<h3>📄 Eerste 3 rijen (voor inspectie)</h3><div class="debug-code">${escapeHtml(JSON.stringify(d.sampleRows, null, 2))}</div>`;
   document.getElementById('debugContent').innerHTML=html;
   document.getElementById('debugModal').classList.add('active');
 }
